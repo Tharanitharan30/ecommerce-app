@@ -1,27 +1,51 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import api from '../services/api';
 import useCartStore from '../store/cartStore';
+import {
+  bodyStyle,
+  buttonStyle,
+  cardStyle,
+  emptyStateStyle,
+  fadeUp,
+  formatCurrency,
+  inputStyle,
+  pageStyle,
+  quantityButtonStyle,
+  sectionTitleStyle,
+  skeletonStyle,
+  theme,
+} from '../theme';
 
 function Cart() {
+  const navigate = useNavigate();
   const { cart, fetchCart, updateItem, removeItem } = useCartStore();
   const [address, setAddress] = useState('');
   const [ordering, setOrdering] = useState(false);
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => { fetchCart(); }, []);
+  useEffect(() => {
+    const load = async () => {
+      await fetchCart();
+      setLoading(false);
+    };
 
-  const total = cart?.items?.reduce(
-    (sum, i) => sum + i.product.price * i.quantity, 0
-  ) || 0;
+    load();
+  }, [fetchCart]);
+
+  const total = cart?.items?.reduce((sum, item) => sum + item.product.price * item.quantity, 0) || 0;
 
   const handleOrder = async () => {
-    if (!address.trim()) return alert('Please enter delivery address');
+    if (!address.trim()) {
+      alert('Please enter delivery address');
+      return;
+    }
+
     setOrdering(true);
     try {
-      const { default: api } = await import('../services/api');
       await api.post('/orders', { address });
       await fetchCart();
-      alert('Order placed successfully!');
       navigate('/orders');
     } catch (err) {
       alert(err.response?.data?.message || 'Order failed');
@@ -29,84 +53,121 @@ function Cart() {
     setOrdering(false);
   };
 
-  if (!cart || cart.items?.length === 0) {
+  if (loading) {
     return (
-      <div className="text-center mt-32">
-        <p className="text-2xl text-gray-400 mb-4">Your cart is empty</p>
-        <button onClick={() => navigate('/')}
-          className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700">
-          Shop Now
-        </button>
+      <div style={pageStyle}>
+        <div style={cardStyle({ padding: 20 })}>
+          <div style={skeletonStyle(56, { marginBottom: 18 })} />
+          <div style={skeletonStyle(220)} />
+        </div>
+      </div>
+    );
+  }
+
+  if (!cart || !cart.items?.length) {
+    return (
+      <div style={pageStyle}>
+        <div style={emptyStateStyle}>
+          <div style={{ fontSize: 54 }}>👜</div>
+          <h1 style={{ margin: 0, fontFamily: 'var(--font-heading)', fontSize: 44 }}>Your cart is empty</h1>
+          <p style={{ ...bodyStyle, maxWidth: 420 }}>
+            Add premium products to your cart and return here to review quantities, totals, and delivery details.
+          </p>
+          <button onClick={() => navigate('/')} style={buttonStyle()}>
+            Continue Shopping
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-6 mt-6">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Your Cart</h1>
+    <motion.div {...fadeUp} style={pageStyle}>
+      <div style={{ display: 'grid', gap: 24, alignItems: 'start', gridTemplateColumns: 'minmax(0, 1fr) minmax(320px, 360px)' }}>
+        <section style={cardStyle({ padding: 22, overflow: 'hidden' })}>
+          <div style={{ marginBottom: 18 }}>
+            <h1 style={{ ...sectionTitleStyle, fontSize: '3.2rem' }}>Your Cart</h1>
+            <p style={{ ...bodyStyle, marginTop: 8 }}>Review selected products before placing your order.</p>
+          </div>
 
-      <div className="flex flex-col gap-4 mb-6">
-        {cart.items.map(item => (
-          <div key={item.product._id}
-            className="bg-white rounded-xl shadow p-4 flex gap-4 items-center">
-            <img
-              src={item.product.image || 'https://via.placeholder.com/80'}
-              alt={item.product.name}
-              className="w-20 h-20 object-cover rounded-lg"
-            />
-            <div className="flex-1">
-              <h3 className="font-semibold text-gray-800">{item.product.name}</h3>
-              <p className="text-indigo-600 font-bold">₹{item.product.price}</p>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 680 }}>
+              <thead>
+                <tr style={{ color: theme.colors.textMuted, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.18em' }}>
+                  <th style={{ textAlign: 'left', padding: '0 0 16px' }}>Product</th>
+                  <th style={{ textAlign: 'left', padding: '0 0 16px' }}>Quantity</th>
+                  <th style={{ textAlign: 'left', padding: '0 0 16px' }}>Price</th>
+                  <th style={{ textAlign: 'left', padding: '0 0 16px' }}>Subtotal</th>
+                  <th style={{ textAlign: 'right', padding: '0 0 16px' }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {cart.items.map((item) => (
+                  <tr key={item.product._id} style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+                    <td style={{ padding: '18px 0' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                        <img src={item.product.image || 'https://via.placeholder.com/80'} alt={item.product.name} style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 18 }} />
+                        <div>
+                          <p style={{ margin: 0, color: theme.colors.text, fontWeight: 600 }}>{item.product.name}</p>
+                          <p style={{ margin: '6px 0 0', color: theme.colors.textMuted, fontSize: 13 }}>{item.product.category}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td style={{ padding: '18px 0' }}>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                        <button onClick={() => updateItem(item.product._id, item.quantity - 1)} disabled={item.quantity <= 1} style={{ ...quantityButtonStyle, opacity: item.quantity <= 1 ? 0.4 : 1 }}>-</button>
+                        <span style={{ minWidth: 26, textAlign: 'center' }}>{item.quantity}</span>
+                        <button onClick={() => updateItem(item.product._id, item.quantity + 1)} style={quantityButtonStyle}>+</button>
+                      </div>
+                    </td>
+                    <td style={{ padding: '18px 0', color: theme.colors.textMuted }}>{formatCurrency(item.product.price)}</td>
+                    <td style={{ padding: '18px 0', color: theme.colors.gold, fontWeight: 600 }}>{formatCurrency(item.product.price * item.quantity)}</td>
+                    <td style={{ padding: '18px 0', textAlign: 'right' }}>
+                      <button onClick={() => removeItem(item.product._id)} style={buttonStyle('ghost')}>Remove</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <aside style={{ position: 'sticky', top: 104, ...cardStyle({ padding: 22 }) }}>
+          <h2 style={{ ...sectionTitleStyle, fontSize: '2.4rem' }}>Order Summary</h2>
+          <div style={{ display: 'grid', gap: 10, marginTop: 18 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', color: theme.colors.textMuted }}>
+              <span>Items</span>
+              <span>{cart.items.length}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => updateItem(item.product._id, item.quantity - 1)}
-                disabled={item.quantity <= 1}
-                className="w-8 h-8 rounded-full border text-lg font-bold
-                  flex items-center justify-center hover:bg-gray-100 disabled:opacity-30">
-                −
-              </button>
-              <span className="w-6 text-center font-medium">{item.quantity}</span>
-              <button
-                onClick={() => updateItem(item.product._id, item.quantity + 1)}
-                className="w-8 h-8 rounded-full border text-lg font-bold
-                  flex items-center justify-center hover:bg-gray-100">
-                +
-              </button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', color: theme.colors.textMuted }}>
+              <span>Delivery</span>
+              <span>Calculated at checkout</span>
             </div>
-            <p className="font-bold text-gray-700 w-20 text-right">
-              ₹{item.product.price * item.quantity}
-            </p>
-            <button
-              onClick={() => removeItem(item.product._id)}
-              className="text-red-400 hover:text-red-600 text-xl ml-2">
-              ✕
+            <div style={{ display: 'flex', justifyContent: 'space-between', color: theme.colors.gold, fontSize: 24, fontWeight: 700, marginTop: 6 }}>
+              <span>Total</span>
+              <span>{formatCurrency(total)}</span>
+            </div>
+          </div>
+
+          <textarea
+            rows={5}
+            value={address}
+            onChange={(event) => setAddress(event.target.value)}
+            placeholder="Enter delivery address"
+            style={{ ...inputStyle(false, { marginTop: 18, resize: 'vertical' }) }}
+          />
+
+          <div style={{ display: 'grid', gap: 12, marginTop: 18 }}>
+            <button onClick={handleOrder} disabled={ordering} style={buttonStyle('primary', ordering ? { opacity: 0.65 } : {})}>
+              {ordering ? 'Placing Order...' : 'Place Order'}
+            </button>
+            <button onClick={() => navigate('/checkout')} style={buttonStyle('secondary')}>
+              Proceed To Checkout
             </button>
           </div>
-        ))}
+        </aside>
       </div>
-
-      {/* Checkout section */}
-      <div className="bg-white rounded-xl shadow p-6 flex flex-col gap-4">
-        <div className="flex justify-between text-xl font-bold">
-          <span>Total</span>
-          <span className="text-indigo-600">₹{total}</span>
-        </div>
-        <textarea
-          placeholder="Enter delivery address..."
-          rows={3}
-          className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"
-          value={address}
-          onChange={e => setAddress(e.target.value)}
-        />
-        // In Cart.jsx replace the Place Order button with:
-        <button
-        onClick={() => navigate('/checkout')}
-        className="bg-indigo-600 text-white py-3 rounded-xl font-semibold hover:bg-indigo-700">
-        Proceed to Checkout →
-        </button>
-      </div>
-    </div>
+    </motion.div>
   );
 }
 

@@ -1,17 +1,22 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import api from '../services/api';
 import useAuthStore from '../store/authStore';
+import { bodyStyle, buttonStyle, cardStyle, fadeUp, inputStyle, pageStyle, sectionTitleStyle, theme } from '../theme';
 
 function Register() {
-  const [form, setForm]   = useState({ name: '', email: '', password: '' });
+  const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
-  const { login }         = useAuthStore();
-  const navigate          = useNavigate();
+  const { login } = useAuthStore();
+  const navigate = useNavigate();
 
   const handleSubmit = async () => {
-    if (!form.name || !form.email || !form.password)
-      return setError('All fields are required');
+    if (!form.name || !form.email || !form.password) {
+      setError('All fields are required');
+      return;
+    }
+
     try {
       const { data } = await api.post('/auth/register', form);
       login(data.user, data.token);
@@ -22,33 +27,54 @@ function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center text-indigo-600 mb-6">Create Account</h2>
-        {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
-        <div className="flex flex-col gap-4">
-          <input type="text" placeholder="Full Name"
-            className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+    <div style={{ ...pageStyle, minHeight: 'calc(100vh - 110px)', display: 'grid', placeItems: 'center' }}>
+      <motion.div
+        {...fadeUp}
+        style={{
+          ...cardStyle({
+            width: '100%',
+            maxWidth: 480,
+            padding: '40px 32px',
+          }),
+        }}
+      >
+        <p style={{ margin: 0, color: theme.colors.gold, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.22em' }}>Create Account</p>
+        <h1 style={{ ...sectionTitleStyle, fontSize: '3.3rem', marginTop: 10 }}>Register</h1>
+        <p style={{ ...bodyStyle, marginTop: 10 }}>Join a premium storefront built for modern shopping.</p>
+
+        <div style={{ display: 'grid', gap: 14, marginTop: 28 }}>
+          <input
+            type="text"
+            placeholder="Full Name"
             value={form.name}
-            onChange={e => setForm({ ...form, name: e.target.value })} />
-          <input type="email" placeholder="Email"
-            className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            onChange={(event) => setForm({ ...form, name: event.target.value })}
+            style={inputStyle(Boolean(error))}
+          />
+          <input
+            type="email"
+            placeholder="Email"
             value={form.email}
-            onChange={e => setForm({ ...form, email: e.target.value })} />
-          <input type="password" placeholder="Password"
-            className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            onChange={(event) => setForm({ ...form, email: event.target.value })}
+            style={inputStyle(Boolean(error))}
+          />
+          <input
+            type="password"
+            placeholder="Password"
             value={form.password}
-            onChange={e => setForm({ ...form, password: e.target.value })} />
-          <button onClick={handleSubmit}
-            className="bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 font-medium">
-            Register
-          </button>
-          <p className="text-center text-sm text-gray-500">
-            Already have an account?{' '}
-            <Link to="/login" className="text-indigo-600 font-medium">Login</Link>
-          </p>
+            onChange={(event) => setForm({ ...form, password: event.target.value })}
+            style={inputStyle(Boolean(error))}
+          />
+          {error && <p style={{ margin: 0, color: theme.colors.danger, fontSize: 14 }}>{error}</p>}
+          <button onClick={handleSubmit} style={buttonStyle()}>Create Account</button>
         </div>
-      </div>
+
+        <p style={{ ...bodyStyle, marginTop: 22, textAlign: 'center' }}>
+          Already have an account?{' '}
+          <Link to="/login" style={{ color: theme.colors.gold, textDecoration: 'none' }}>
+            Login
+          </Link>
+        </p>
+      </motion.div>
     </div>
   );
 }

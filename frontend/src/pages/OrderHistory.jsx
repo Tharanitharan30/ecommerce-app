@@ -1,63 +1,128 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import api from '../services/api';
-
-const statusColors = {
-  pending:   'bg-yellow-100 text-yellow-700',
-  shipped:   'bg-blue-100 text-blue-700',
-  delivered: 'bg-green-100 text-green-700',
-  cancelled: 'bg-red-100 text-red-700',
-};
+import {
+  badgeStyle,
+  bodyStyle,
+  buttonStyle,
+  cardStyle,
+  emptyStateStyle,
+  fadeUp,
+  formatCurrency,
+  pageStyle,
+  sectionTitleStyle,
+  skeletonStyle,
+  statusTone,
+  theme,
+} from '../theme';
 
 function OrderHistory() {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/orders/myorders').then(res => setOrders(res.data));
+    let canceled = false;
+
+    api.get('/orders/myorders')
+      .then((response) => {
+        if (canceled) return;
+        setOrders(response.data || []);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (!canceled) setLoading(false);
+      });
+
+    return () => {
+      canceled = true;
+    };
   }, []);
 
-  if (orders.length === 0) {
+  if (loading) {
     return (
-      <div className="text-center mt-32 text-gray-400 text-xl">
-        No orders yet
+      <div style={pageStyle}>
+        <div style={{ display: 'grid', gap: 18 }}>
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div key={index} style={cardStyle({ padding: 22 })}>
+              <div style={skeletonStyle(24, { width: '35%' })} />
+              <div style={skeletonStyle(70, { marginTop: 16 })} />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (!orders.length) {
+    return (
+      <div style={pageStyle}>
+        <div style={emptyStateStyle}>
+          <div style={{ fontSize: 54 }}>◐</div>
+          <h1 style={{ margin: 0, fontFamily: 'var(--font-heading)', fontSize: 44 }}>No orders yet</h1>
+          <p style={{ ...bodyStyle, maxWidth: 420 }}>
+            Once you place an order, the full history and payment status will appear here.
+          </p>
+          <button onClick={() => navigate('/')} style={buttonStyle()}>
+            Start Shopping
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-6 mt-6">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">My Orders</h1>
-      <div className="flex flex-col gap-4">
-        {orders.map(order => (
-          <div key={order._id} className="bg-white rounded-xl shadow p-6">
-            <div className="flex justify-between items-center mb-3">
-              <p className="text-sm text-gray-400">
-                Order ID: <span className="font-mono">{order._id.slice(-8).toUpperCase()}</span>
-              </p>
-              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColors[order.status]}`}>
-                {order.status.toUpperCase()}
-              </span>
+    <motion.div {...fadeUp} style={pageStyle}>
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ ...sectionTitleStyle, fontSize: '3.2rem' }}>Order History</h1>
+        <p style={{ ...bodyStyle, marginTop: 8 }}>Track recent orders, payment confirmations, and delivery progress.</p>
+      </div>
+
+      <div style={{ display: 'grid', gap: 18 }}>
+        {orders.map((order) => (
+          <article key={order._id} style={cardStyle({ padding: 22 })}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+              <div>
+                <p style={{ margin: 0, color: theme.colors.textMuted, fontSize: 13 }}>Order ID</p>
+                <code style={{ color: theme.colors.text, fontFamily: 'ui-monospace, SFMono-Regular, monospace', fontSize: 14 }}>
+                  {order._id.toUpperCase()}
+                </code>
+              </div>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <span style={badgeStyle(statusTone[order.status] || 'default')}>{order.status}</span>
+                <span style={badgeStyle('gold')}>Payment Confirmed</span>
+              </div>
             </div>
-            <div className="flex flex-col gap-1 mb-3">
-              {order.items.map((item, i) => (
-                <div key={i} className="flex justify-between text-sm text-gray-600">
-                  <span>{item.name} × {item.quantity}</span>
-                  <span>₹{item.price * item.quantity}</span>
+
+            <div style={{ marginTop: 18, display: 'grid', gap: 10 }}>
+              {order.items.map((item, index) => (
+                <div key={`${item.name}-${index}`} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, color: theme.colors.textMuted }}>
+                  <span>{item.name} x {item.quantity}</span>
+                  <span>{formatCurrency(item.price * item.quantity)}</span>
                 </div>
               ))}
             </div>
-            <div className="border-t pt-3 flex justify-between items-center">
-              <p className="text-sm text-gray-400">📍 {order.address}</p>
-              <p className="font-bold text-indigo-600">Total: ₹{order.totalPrice}</p>
+
+            <div style={{ marginTop: 18, paddingTop: 18, borderTop: '1px solid rgba(255,255,255,0.07)', display: 'flex', justifyContent: 'space-between', gap: 18, flexWrap: 'wrap' }}>
+              <div>
+                <p style={{ margin: 0, color: theme.colors.textMuted, fontSize: 13 }}>
+                  {new Date(order.createdAt).toLocaleDateString('en-IN', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                  })}
+                </p>
+                <p style={{ margin: '6px 0 0', color: theme.colors.textMuted, fontSize: 14 }}>{order.address}</p>
+              </div>
+              <p style={{ margin: 0, color: theme.colors.gold, fontWeight: 700, fontSize: 24 }}>
+                {formatCurrency(order.totalPrice)}
+              </p>
             </div>
-            <p className="text-xs text-gray-300 mt-2">
-              {new Date(order.createdAt).toLocaleDateString('en-IN', {
-                day: 'numeric', month: 'long', year: 'numeric'
-              })}
-            </p>
-          </div>
+          </article>
         ))}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
