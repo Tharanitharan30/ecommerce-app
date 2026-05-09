@@ -1,6 +1,5 @@
 const Cart = require('../models/Cart');
 
-// GET /api/cart
 exports.getCart = async (req, res) => {
   try {
     const cart = await Cart.findOne({ user: req.user.id })
@@ -12,25 +11,15 @@ exports.getCart = async (req, res) => {
   }
 };
 
-// POST /api/cart  — add item
 exports.addToCart = async (req, res) => {
   try {
     const { productId, quantity = 1 } = req.body;
     let cart = await Cart.findOne({ user: req.user.id });
+    if (!cart) cart = await Cart.create({ user: req.user.id, items: [] });
 
-    if (!cart) {
-      cart = await Cart.create({ user: req.user.id, items: [] });
-    }
-
-    const existing = cart.items.find(
-      item => item.product.toString() === productId
-    );
-
-    if (existing) {
-      existing.quantity += quantity;
-    } else {
-      cart.items.push({ product: productId, quantity });
-    }
+    const existing = cart.items.find(i => i.product.toString() === productId);
+    if (existing) existing.quantity += quantity;
+    else cart.items.push({ product: productId, quantity });
 
     await cart.save();
     await cart.populate('items.product', 'name price image stock');
@@ -40,19 +29,15 @@ exports.addToCart = async (req, res) => {
   }
 };
 
-// PUT /api/cart/:productId — update quantity
 exports.updateCartItem = async (req, res) => {
   try {
-    const { quantity } = req.body;
     const cart = await Cart.findOne({ user: req.user.id });
     if (!cart) return res.status(404).json({ message: 'Cart not found' });
 
-    const item = cart.items.find(
-      item => item.product.toString() === req.params.productId
-    );
+    const item = cart.items.find(i => i.product.toString() === req.params.productId);
     if (!item) return res.status(404).json({ message: 'Item not found' });
 
-    item.quantity = quantity;
+    item.quantity = req.body.quantity;
     await cart.save();
     await cart.populate('items.product', 'name price image stock');
     res.json(cart);
@@ -61,16 +46,12 @@ exports.updateCartItem = async (req, res) => {
   }
 };
 
-// DELETE /api/cart/:productId — remove one item
 exports.removeCartItem = async (req, res) => {
   try {
     const cart = await Cart.findOne({ user: req.user.id });
     if (!cart) return res.status(404).json({ message: 'Cart not found' });
 
-    cart.items = cart.items.filter(
-      item => item.product.toString() !== req.params.productId
-    );
-
+    cart.items = cart.items.filter(i => i.product.toString() !== req.params.productId);
     await cart.save();
     await cart.populate('items.product', 'name price image stock');
     res.json(cart);
@@ -79,7 +60,6 @@ exports.removeCartItem = async (req, res) => {
   }
 };
 
-// DELETE /api/cart — clear entire cart
 exports.clearCart = async (req, res) => {
   try {
     await Cart.findOneAndDelete({ user: req.user.id });

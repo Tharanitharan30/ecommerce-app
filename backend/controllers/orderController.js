@@ -1,7 +1,14 @@
-const Order = require('../models/Order');
-const Cart  = require('../models/Cart');
+const Order    = require('../models/Order');
+const Cart     = require('../models/Cart');
+const Razorpay = require('razorpay');
+const crypto   = require('crypto');
 
-// POST /api/orders — place order
+const razorpay = new Razorpay({
+  key_id:     process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
+
+// POST /api/orders
 exports.placeOrder = async (req, res) => {
   try {
     const { address } = req.body;
@@ -10,14 +17,6 @@ exports.placeOrder = async (req, res) => {
 
     if (!cart || cart.items.length === 0)
       return res.status(400).json({ message: 'Cart is empty' });
-
-    // Check stock for every item
-    for (const item of cart.items) {
-      if (item.product.stock < item.quantity)
-        return res.status(400).json({
-          message: `Insufficient stock for ${item.product.name}`
-        });
-    }
 
     const orderItems = cart.items.map(item => ({
       product:  item.product._id,
@@ -31,15 +30,10 @@ exports.placeOrder = async (req, res) => {
     );
 
     const order = await Order.create({
-      user: req.user.id,
-      items: orderItems,
-      totalPrice,
-      address,
+      user: req.user.id, items: orderItems, totalPrice, address
     });
 
-    // Clear cart after order
     await Cart.findOneAndDelete({ user: req.user.id });
-
     res.status(201).json(order);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -57,7 +51,7 @@ exports.getMyOrders = async (req, res) => {
   }
 };
 
-// GET /api/orders  (admin)
+// GET /api/orders (admin)
 exports.getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find()
@@ -69,17 +63,73 @@ exports.getAllOrders = async (req, res) => {
   }
 };
 
-// PUT /api/orders/:id/status  (admin)
+// PUT /api/orders/:id/status (admin)
 exports.updateOrderStatus = async (req, res) => {
   try {
-    const { status } = req.body;
     const order = await Order.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true }
+      req.params.id, { status: req.body.status }, { new: true }
     );
     if (!order) return res.status(404).json({ message: 'Order not found' });
     res.json(order);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// POST /api/orders/pay
+exports.createPaymentOrder = async (req, res) => {
+  try {
+    const { amount } = req.body;
+    const options = {
+      amount:   amount * 100,
+      currency: 'INR',
+      receipt:  `receipt_${Date.now()}`,
+    };
+    const order = await razorpay.orders.create(options);
+    res.json({
+      orderId:  order.id,
+      amount:   order.amount,
+      currency: order.currency,
+      key:      process.env.RAZORPAY_KEY_ID,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// POST /api/orders/verify
+exports.verifyPayment = async (req, res) => {
+  try {
+    const {
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+      cartItems,
+      totalPrice,
+      address,
+    } = req.body;
+
+    const body = razorpay_order_id + '|' + razorpay_payment_id;
+    const expectedSignature = crypto
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .update(body)
+      .digest('hex');
+
+    if (expectedSignature !== razorpay_signature)
+      return res.status(400).json({ message: 'Payment verification failed' });
+
+    const order = await Order.create({
+      user:      req.user.id,
+      items:     cartItems,
+      totalPrice,
+      address,
+      isPaid:    true,
+      paymentId: razorpay_payment_id,
+      status:    'pending',
+    });
+
+    await Cart.findOneAndDelete({ user: req.user.id });
+    res.status(201).json({ message: 'Payment successful', order });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

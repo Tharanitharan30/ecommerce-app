@@ -5,8 +5,12 @@ const useCartStore = create((set) => ({
   cart: null,
 
   fetchCart: async () => {
-    const { data } = await api.get('/cart');
-    set({ cart: data });
+    try {
+      const { data } = await api.get('/cart');
+      set({ cart: data });
+    } catch {
+      set({ cart: null });
+    }
   },
 
   addToCart: async (productId, quantity = 1) => {
