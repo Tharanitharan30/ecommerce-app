@@ -1,335 +1,251 @@
-# 🛒 ShopApp — Full Stack E-Commerce Platform
+# Ecommerce App
 
-A modern, full-stack e-commerce web application built with **React**, **Node.js (Express)**, and **MongoDB**. Features complete product browsing, cart management, secure authentication, and Razorpay payment integration.
+A full-stack ecommerce application with a React frontend and an Express + MongoDB backend. The app supports product browsing, authentication, cart management, order history, cash-on-delivery orders, and Razorpay-based payments.
 
----
+## Features
 
-## 📸 Pages Overview
+- Product catalog with search, category filters, and sorting
+- Product detail pages with stock visibility and quantity selection
+- User registration and login with JWT authentication
+- Protected cart, checkout, and order history routes
+- Cart quantity updates and item removal
+- Order placement with delivery address support
+- Razorpay payment flow with backend verification
 
-| Page | Description |
-|------|-------------|
-| **Home** | Product listing with search, category filters, and sort options |
-| **Product Detail** | Full product view with quantity selector and stock status |
-| **Cart** | Cart management with quantity controls and order placement |
-| **Checkout** | Secure checkout with Razorpay payment integration |
-| **Login / Register** | JWT-based authentication |
-| **Order History** | Track all past orders with real-time status |
-
----
-
-## 🧱 Tech Stack
+## Tech Stack
 
 ### Frontend
-| Technology | Purpose |
-|------------|---------|
-| React + Vite | UI framework & build tool |
-| React Router DOM | Client-side routing |
-| Zustand | Global state (auth + cart) |
-| Axios | HTTP client with JWT interceptor |
-| Tailwind CSS | Utility-first styling |
+
+- React 19
+- Vite
+- React Router
+- Zustand
+- Axios
+- Custom CSS and shared theme tokens
 
 ### Backend
-| Technology | Purpose |
-|------------|---------|
-| Node.js + Express | REST API server |
-| MongoDB + Mongoose | Database & ODM |
-| JWT + bcryptjs | Authentication & password hashing |
-| Razorpay | Payment gateway |
-| Multer | Image/file upload handling |
-| Nodemon | Dev auto-restart |
 
----
+- Node.js
+- Express
+- MongoDB with Mongoose
+- JWT authentication
+- bcryptjs
+- Razorpay
+- Multer
 
-## 📁 Project Structure
+## Project Structure
 
-```
+```text
 ecommerce-app/
-├── backend/
-│   ├── config/
-│   │   └── db.js                 # MongoDB connection
-│   ├── controllers/
-│   │   ├── authController.js     # Register, login, getMe
-│   │   ├── productController.js  # CRUD for products
-│   │   ├── cartController.js     # Cart operations
-│   │   └── orderController.js    # Orders + Razorpay
-│   ├── middleware/
-│   │   └── authMiddleware.js     # JWT protect + adminOnly
-│   ├── models/
-│   │   ├── User.js
-│   │   ├── Product.js
-│   │   ├── Cart.js
-│   │   └── Order.js
-│   ├── routes/
-│   │   ├── authRoutes.js
-│   │   ├── productRoutes.js
-│   │   ├── cartRoutes.js
-│   │   └── orderRoutes.js
-│   ├── uploads/                  # Product images
-│   ├── seed.js                   # Sample product seeder
-│   ├── server.js                 # App entry point
-│   └── .env
-│
-└── frontend/
-    ├── src/
-    │   ├── components/
-    │   │   ├── Navbar.jsx
-    │   │   ├── ProductCard.jsx
-    │   │   └── ProtectedRoute.jsx
-    │   ├── pages/
-    │   │   ├── Home.jsx
-    │   │   ├── ProductDetail.jsx
-    │   │   ├── Cart.jsx
-    │   │   ├── Checkout.jsx
-    │   │   ├── Login.jsx
-    │   │   ├── Register.jsx
-    │   │   └── OrderHistory.jsx
-    │   ├── services/
-    │   │   └── api.js            # Axios instance + interceptor
-    │   ├── store/
-    │   │   ├── authStore.js      # Zustand auth state
-    │   │   └── cartStore.js      # Zustand cart state
-    │   ├── App.jsx
-    │   └── main.jsx
-    ├── index.html
-    └── .env
+|-- backend/
+|   |-- config/
+|   |   `-- db.js
+|   |-- controllers/
+|   |   |-- authController.js
+|   |   |-- cartController.js
+|   |   |-- orderController.js
+|   |   `-- productController.js
+|   |-- middleware/
+|   |   `-- authMiddleware.js
+|   |-- models/
+|   |   |-- Cart.js
+|   |   |-- Order.js
+|   |   |-- Product.js
+|   |   `-- User.js
+|   |-- routes/
+|   |   |-- authRoutes.js
+|   |   |-- cartRoutes.js
+|   |   |-- orderRoutes.js
+|   |   `-- productRoutes.js
+|   |-- seed.js
+|   |-- server.js
+|   `-- package.json
+|-- frontend/
+|   |-- src/
+|   |   |-- components/
+|   |   |-- pages/
+|   |   |-- services/
+|   |   |-- store/
+|   |   |-- App.jsx
+|   |   |-- index.css
+|   |   `-- theme.js
+|   `-- package.json
+`-- README.md
 ```
 
----
+## Pages
 
-## ⚙️ Getting Started
+| Route | Purpose |
+| --- | --- |
+| `/` | Product listing with filters and search |
+| `/product/:id` | Product details and add-to-cart flow |
+| `/login` | User sign-in |
+| `/register` | User registration |
+| `/cart` | Cart review and order placement |
+| `/checkout` | Razorpay checkout flow |
+| `/orders` | Order history |
+
+## Getting Started
 
 ### Prerequisites
 
-- Node.js v18+
-- MongoDB (local via Compass or MongoDB Atlas)
-- Razorpay account (for payments)
+- Node.js 18 or newer
+- MongoDB local instance or MongoDB Atlas
+- Razorpay test account for payment testing
 
----
+### 1. Install dependencies
 
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/yourusername/ecommerce-app.git
-cd ecommerce-app
-```
-
----
-
-### 2. Backend setup
+Backend:
 
 ```bash
 cd backend
 npm install
 ```
 
-Create a `.env` file in the `backend/` folder:
-
-```env
-PORT=5000
-MONGO_URI=mongodb://localhost:27017/ecommerce
-JWT_SECRET=your_jwt_secret_here
-RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxxxx
-RAZORPAY_KEY_SECRET=your_razorpay_secret
-NODE_ENV=development
-```
-
-Seed the database with sample products:
-
-```bash
-node seed.js
-```
-
-Start the backend server:
-
-```bash
-npm run dev
-```
-
-Backend runs at → `http://localhost:5000`
-
----
-
-### 3. Frontend setup
+Frontend:
 
 ```bash
 cd ../frontend
 npm install
 ```
 
-Create a `.env` file in the `frontend/` folder:
+### 2. Configure environment variables
 
-```env
-VITE_API_URL=http://localhost:5000/api
-```
+Create `backend/.env`:
 
-Start the frontend:
-
-```bash
-npm run dev
-```
-
-Frontend runs at → `http://localhost:5173`
-
----
-
-## 🔌 API Endpoints
-
-### Auth — `/api/auth`
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/register` | No | Create new account |
-| POST | `/login` | No | Login, returns JWT |
-| GET | `/me` | Yes | Get current user |
-
-### Products — `/api/products`
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/` | No | Get all products (supports `?search=`, `?category=`, `?sort=`) |
-| GET | `/:id` | No | Get product by ID |
-| POST | `/` | Admin | Create product |
-| PUT | `/:id` | Admin | Update product |
-| DELETE | `/:id` | Admin | Delete product |
-
-### Cart — `/api/cart`
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/` | Yes | Get user's cart |
-| POST | `/` | Yes | Add item to cart |
-| PUT | `/:productId` | Yes | Update item quantity |
-| DELETE | `/:productId` | Yes | Remove item |
-| DELETE | `/` | Yes | Clear entire cart |
-
-### Orders — `/api/orders`
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/` | Yes | Place order (COD) |
-| POST | `/pay` | Yes | Create Razorpay payment order |
-| POST | `/verify` | Yes | Verify payment + save order |
-| GET | `/myorders` | Yes | Get user's orders |
-| GET | `/` | Admin | Get all orders |
-| PUT | `/:id/status` | Admin | Update order status |
-
----
-
-## 💳 Payment Testing (Razorpay Test Mode)
-
-Use these test credentials when the Razorpay popup appears:
-
-| Field | Value |
-|-------|-------|
-| Card Number | `4111 1111 1111 1111` |
-| Expiry | Any future date |
-| CVV | Any 3 digits |
-| OTP | `1234` |
-| UPI ID | `success@razorpay` |
-
----
-
-## 🗃️ Database Models
-
-### User
-```
-name, email, password (hashed), role (user/admin), createdAt
-```
-
-### Product
-```
-name, description, price, stock, category, image, createdAt
-```
-
-### Cart
-```
-user (ref), items: [{ product (ref), quantity }]
-```
-
-### Order
-```
-user (ref), items: [{ product, name, quantity, price }],
-totalPrice, address, status, isPaid, paymentId, createdAt
-```
-
----
-
-## 🔐 Authentication Flow
-
-1. User registers/logs in → receives JWT token
-2. Token stored in `localStorage`
-3. Axios interceptor auto-attaches token to every request header:
-   ```
-   Authorization: Bearer <token>
-   ```
-4. Backend `protect` middleware verifies token on protected routes
-5. `adminOnly` middleware restricts admin-only routes
-
----
-
-## 📦 Available Scripts
-
-### Backend
-```bash
-npm run dev     # Start with nodemon (auto-restart)
-npm start       # Start in production mode
-node seed.js    # Seed sample products to database
-```
-
-### Frontend
-```bash
-npm run dev     # Start Vite dev server
-npm run build   # Build for production
-npm run preview # Preview production build
-```
-
----
-
-## 🚀 Deployment
-
-### Frontend → Vercel
-```bash
-cd frontend
-npm run build
-# Deploy /dist folder to Vercel
-```
-
-### Backend → Railway or Render
-1. Push backend to GitHub
-2. Connect repo to Railway/Render
-3. Add environment variables from `.env`
-4. Set start command: `node server.js`
-
-> Remember to update `VITE_API_URL` in your frontend `.env` to your deployed backend URL before building.
-
----
-
-## 🛠️ Environment Variables Summary
-
-### Backend `.env`
 ```env
 PORT=5000
 MONGO_URI=mongodb://localhost:27017/ecommerce
-JWT_SECRET=your_secret_key
-RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxxxx
-RAZORPAY_KEY_SECRET=your_razorpay_secret
+JWT_SECRET=replace_with_a_secure_secret
 NODE_ENV=development
+RAZORPAY_KEY_ID=your_razorpay_key_id
+RAZORPAY_KEY_SECRET=your_razorpay_key_secret
 ```
 
-### Frontend `.env`
+Create `frontend/.env`:
+
 ```env
 VITE_API_URL=http://localhost:5000/api
 ```
 
----
+Important:
 
-## 👤 Author
+- Do not commit real secrets to source control.
+- If this repository has previously contained live credentials, rotate them before deploying or sharing the project.
 
-**Tharanitharan S**
-Full Stack Developer & ML Engineer — Coimbatore, India
+### 3. Seed the database
 
----
+```bash
+cd backend
+node seed.js
+```
 
-## 📄 License
+### 4. Run the app
 
-This project is open source and available under the [MIT License](LICENSE).
+Start the backend:
+
+```bash
+cd backend
+npm run dev
+```
+
+Start the frontend in a second terminal:
+
+```bash
+cd frontend
+npm run dev
+```
+
+Default local URLs:
+
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:5000`
+
+## API Overview
+
+### Auth - `/api/auth`
+
+| Method | Endpoint | Access | Purpose |
+| --- | --- | --- | --- |
+| `POST` | `/register` | Public | Create a new account |
+| `POST` | `/login` | Public | Authenticate and return a token |
+| `GET` | `/me` | Private | Get the current user |
+
+### Products - `/api/products`
+
+| Method | Endpoint | Access | Purpose |
+| --- | --- | --- | --- |
+| `GET` | `/` | Public | Get all products |
+| `GET` | `/:id` | Public | Get one product |
+| `POST` | `/` | Admin | Create a product |
+| `PUT` | `/:id` | Admin | Update a product |
+| `DELETE` | `/:id` | Admin | Delete a product |
+
+### Cart - `/api/cart`
+
+| Method | Endpoint | Access | Purpose |
+| --- | --- | --- | --- |
+| `GET` | `/` | Private | Get the user's cart |
+| `POST` | `/` | Private | Add an item to cart |
+| `PUT` | `/:productId` | Private | Update cart quantity |
+| `DELETE` | `/:productId` | Private | Remove one cart item |
+| `DELETE` | `/` | Private | Clear the cart |
+
+### Orders - `/api/orders`
+
+| Method | Endpoint | Access | Purpose |
+| --- | --- | --- | --- |
+| `POST` | `/` | Private | Place a non-paid order |
+| `POST` | `/pay` | Private | Create a Razorpay order |
+| `POST` | `/verify` | Private | Verify payment and save order |
+| `GET` | `/myorders` | Private | Get the logged-in user's orders |
+| `GET` | `/` | Admin | Get all orders |
+| `PUT` | `/:id/status` | Admin | Update order status |
+
+## Payment Testing
+
+For Razorpay test mode, you can use Razorpay's standard sandbox values, for example:
+
+- Card number: `4111 1111 1111 1111`
+- Expiry: any future date
+- CVV: any 3 digits
+- OTP: `1234`
+- UPI ID: `success@razorpay`
+
+## Available Scripts
+
+### Backend
+
+```bash
+npm run dev
+npm start
+node seed.js
+```
+
+### Frontend
+
+```bash
+npm run dev
+npm run build
+npm run preview
+npm run lint
+```
+
+## Deployment Notes
+
+- Deploy the frontend as a static Vite build.
+- Deploy the backend to a Node-compatible host such as Render, Railway, or a VPS.
+- Update `VITE_API_URL` to your deployed backend URL before building the frontend.
+- Add all backend environment variables in your hosting provider dashboard.
+
+## Future Improvements
+
+- Admin dashboard for product and order management
+- Better form validation and user-facing error states
+- Product image upload UI
+- Automated tests for frontend and backend flows
+- Pagination and server-side filtering for large catalogs
+
+## Author
+
+Tharanitharan S
