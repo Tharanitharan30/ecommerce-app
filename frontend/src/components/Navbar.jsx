@@ -50,15 +50,15 @@ function Navbar() {
       <nav
         style={{
           ...cardStyle({
-            maxWidth: 1240,
+            maxWidth: 1200,
             margin: '0 auto',
-            padding: '14px 20px',
+            padding: '14px 18px',
             display: 'grid',
             gridTemplateColumns: 'auto 1fr auto',
             alignItems: 'center',
-            gap: 20,
-            backdropFilter: 'blur(22px)',
-            background: scrolled ? 'rgba(18, 18, 18, 0.94)' : 'rgba(18, 18, 18, 0.86)',
+            gap: 16,
+            backdropFilter: 'blur(18px)',
+            background: scrolled ? 'rgba(255, 255, 255, 0.96)' : 'rgba(255, 255, 255, 0.9)',
             boxShadow: scrolled ? theme.shadow.glow : theme.shadow.soft,
           }),
         }}
@@ -69,28 +69,28 @@ function Navbar() {
             textDecoration: 'none',
             display: 'inline-flex',
             alignItems: 'center',
-            gap: 14,
+            gap: 12,
           }}
         >
           <div
             style={{
-              width: 46,
-              height: 46,
-              borderRadius: 16,
-              background: 'linear-gradient(135deg, rgba(201,169,110,0.95), rgba(151,120,68,0.88))',
-              color: '#17120d',
+              width: 42,
+              height: 42,
+              borderRadius: 14,
+              background: '#0f172a',
+              color: '#ffffff',
               display: 'grid',
               placeItems: 'center',
-              fontWeight: 700,
-              fontSize: 18,
+              fontWeight: 800,
+              fontSize: 16,
             }}
           >
-            A
+            E
           </div>
           <div>
-            <p style={{ margin: 0, fontFamily: 'var(--font-heading)', fontSize: 30, lineHeight: 0.9 }}>Aureline</p>
-            <p style={{ margin: '2px 0 0', color: theme.colors.textMuted, fontSize: 11, letterSpacing: '0.24em', textTransform: 'uppercase' }}>
-              Luxury Commerce
+            <p style={{ margin: 0, fontSize: 18, fontWeight: 800, color: theme.colors.text }}>Ecommerce</p>
+            <p style={{ margin: '2px 0 0', color: theme.colors.textMuted, fontSize: 12 }}>
+              Clean shopping experience
             </p>
           </div>
         </Link>
@@ -99,16 +99,12 @@ function Navbar() {
           style={{
             display: 'flex',
             justifyContent: 'center',
-            gap: 26,
+            gap: 24,
             flexWrap: 'wrap',
           }}
         >
           {links.map((link) => (
-            <Link
-              key={link.to}
-              to={link.to}
-              style={navLinkStyle(location.pathname === link.to)}
-            >
+            <Link key={link.to} to={link.to} style={navLinkStyle(location.pathname === link.to)}>
               {link.label}
             </Link>
           ))}
@@ -131,7 +127,6 @@ function Navbar() {
                 alignItems: 'center',
                 gap: 10,
                 textDecoration: 'none',
-                position: 'relative',
               }),
             }}
           >
@@ -141,15 +136,16 @@ function Navbar() {
           </Link>
           {user ? (
             <>
-              <span
-                style={{
-                  color: theme.colors.textMuted,
-                  fontSize: 13,
-                }}
-              >
+              <span style={{ color: theme.colors.textMuted, fontSize: 13, fontWeight: 600 }}>
                 {user.name}
               </span>
-              <button onClick={() => { logout(); navigate('/login'); }} style={buttonStyle('secondary')}>
+              <button
+                onClick={() => {
+                  logout();
+                  navigate('/login');
+                }}
+                style={buttonStyle('secondary')}
+              >
                 Logout
               </button>
             </>

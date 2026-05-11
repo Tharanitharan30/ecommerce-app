@@ -59,13 +59,13 @@ function OrderHistory() {
     return (
       <div style={pageStyle}>
         <div style={emptyStateStyle}>
-          <div style={{ fontSize: 54 }}>◐</div>
-          <h1 style={{ margin: 0, fontFamily: 'var(--font-heading)', fontSize: 44 }}>No orders yet</h1>
+          <div style={{ fontSize: 40, color: theme.colors.textMuted }}>Orders</div>
+          <h1 style={{ margin: 0, fontSize: 36, color: theme.colors.text }}>No orders yet</h1>
           <p style={{ ...bodyStyle, maxWidth: 420 }}>
             Once you place an order, the full history and payment status will appear here.
           </p>
           <button onClick={() => navigate('/')} style={buttonStyle()}>
-            Start Shopping
+            Start shopping
           </button>
         </div>
       </div>
@@ -75,7 +75,7 @@ function OrderHistory() {
   return (
     <motion.div {...fadeUp} style={pageStyle}>
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ ...sectionTitleStyle, fontSize: '3.2rem' }}>Order History</h1>
+        <h1 style={{ ...sectionTitleStyle, fontSize: '2.6rem' }}>Order history</h1>
         <p style={{ ...bodyStyle, marginTop: 8 }}>Track recent orders, payment confirmations, and delivery progress.</p>
       </div>
 
@@ -91,7 +91,7 @@ function OrderHistory() {
               </div>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <span style={badgeStyle(statusTone[order.status] || 'default')}>{order.status}</span>
-                <span style={badgeStyle('gold')}>Payment Confirmed</span>
+                <span style={badgeStyle('gold')}>Payment confirmed</span>
               </div>
             </div>
 
@@ -104,7 +104,7 @@ function OrderHistory() {
               ))}
             </div>
 
-            <div style={{ marginTop: 18, paddingTop: 18, borderTop: '1px solid rgba(255,255,255,0.07)', display: 'flex', justifyContent: 'space-between', gap: 18, flexWrap: 'wrap' }}>
+            <div style={{ marginTop: 18, paddingTop: 18, borderTop: `1px solid ${theme.colors.border}`, display: 'flex', justifyContent: 'space-between', gap: 18, flexWrap: 'wrap' }}>
               <div>
                 <p style={{ margin: 0, color: theme.colors.textMuted, fontSize: 13 }}>
                   {new Date(order.createdAt).toLocaleDateString('en-IN', {
@@ -115,7 +115,7 @@ function OrderHistory() {
                 </p>
                 <p style={{ margin: '6px 0 0', color: theme.colors.textMuted, fontSize: 14 }}>{order.address}</p>
               </div>
-              <p style={{ margin: 0, color: theme.colors.gold, fontWeight: 700, fontSize: 24 }}>
+              <p style={{ margin: 0, color: theme.colors.text, fontWeight: 800, fontSize: 22 }}>
                 {formatCurrency(order.totalPrice)}
               </p>
             </div>

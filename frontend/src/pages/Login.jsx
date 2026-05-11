@@ -33,14 +33,16 @@ function Login() {
         style={{
           ...cardStyle({
             width: '100%',
-            maxWidth: 480,
-            padding: '40px 32px',
+            maxWidth: 460,
+            padding: '36px 30px',
           }),
         }}
       >
-        <p style={{ margin: 0, color: theme.colors.gold, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.22em' }}>Welcome Back</p>
-        <h1 style={{ ...sectionTitleStyle, fontSize: '3.3rem', marginTop: 10 }}>Sign In</h1>
-        <p style={{ ...bodyStyle, marginTop: 10 }}>Continue to your curated shopping experience.</p>
+        <p style={{ margin: 0, color: theme.colors.primary, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.18em', fontWeight: 700 }}>
+          Welcome back
+        </p>
+        <h1 style={{ ...sectionTitleStyle, fontSize: '2.8rem', marginTop: 10 }}>Sign in</h1>
+        <p style={{ ...bodyStyle, marginTop: 10 }}>Access your account to continue shopping.</p>
 
         <div style={{ display: 'grid', gap: 14, marginTop: 28 }}>
           <input
@@ -58,12 +60,14 @@ function Login() {
             style={inputStyle(Boolean(error))}
           />
           {error && <p style={{ margin: 0, color: theme.colors.danger, fontSize: 14 }}>{error}</p>}
-          <button onClick={handleSubmit} style={buttonStyle()}>Login</button>
+          <button onClick={handleSubmit} style={buttonStyle()}>
+            Login
+          </button>
         </div>
 
         <p style={{ ...bodyStyle, marginTop: 22, textAlign: 'center' }}>
           Don&apos;t have an account?{' '}
-          <Link to="/register" style={{ color: theme.colors.gold, textDecoration: 'none' }}>
+          <Link to="/register" style={{ color: theme.colors.primary, textDecoration: 'none', fontWeight: 700 }}>
             Register
           </Link>
         </p>

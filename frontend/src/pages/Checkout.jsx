@@ -50,8 +50,8 @@ function Checkout() {
         amount: data.amount,
         currency: data.currency,
         order_id: data.orderId,
-        name: 'Aureline',
-        description: 'Premium order payment',
+        name: 'Ecommerce',
+        description: 'Order payment',
         handler: async (response) => {
           const cartItems = cart.items.map((item) => ({
             product: item.product._id,
@@ -72,7 +72,7 @@ function Checkout() {
           clearCart();
           navigate('/orders');
         },
-        theme: { color: '#c9a96e' },
+        theme: { color: '#2563eb' },
       };
 
       const razorpay = new window.Razorpay(options);
@@ -101,13 +101,13 @@ function Checkout() {
     return (
       <div style={pageStyle}>
         <div style={emptyStateStyle}>
-          <div style={{ fontSize: 54 }}>◌</div>
-          <h1 style={{ margin: 0, fontFamily: 'var(--font-heading)', fontSize: 44 }}>Checkout is empty</h1>
+          <div style={{ fontSize: 40, color: theme.colors.textMuted }}>Pay</div>
+          <h1 style={{ margin: 0, fontSize: 36, color: theme.colors.text }}>Checkout is empty</h1>
           <p style={{ ...bodyStyle, maxWidth: 420 }}>
             Add items to your cart before starting the payment flow.
           </p>
           <button onClick={() => navigate('/')} style={buttonStyle()}>
-            Shop Now
+            Shop now
           </button>
         </div>
       </div>
@@ -118,8 +118,8 @@ function Checkout() {
     <motion.div {...fadeUp} style={pageStyle}>
       <div style={{ display: 'grid', gap: 24, gridTemplateColumns: 'minmax(0, 1fr) minmax(320px, 360px)' }}>
         <section style={cardStyle({ padding: 24 })}>
-          <h1 style={{ ...sectionTitleStyle, fontSize: '3.2rem' }}>Checkout</h1>
-          <p style={{ ...bodyStyle, marginTop: 8 }}>Confirm your items and pay securely with Razorpay.</p>
+          <h1 style={{ ...sectionTitleStyle, fontSize: '2.6rem' }}>Checkout</h1>
+          <p style={{ ...bodyStyle, marginTop: 8 }}>Review your items and pay securely with Razorpay.</p>
 
           <div style={{ marginTop: 22, display: 'grid', gap: 12 }}>
             {cart.items.map((item) => (
@@ -130,16 +130,16 @@ function Checkout() {
                   justifyContent: 'space-between',
                   gap: 14,
                   padding: '14px 16px',
-                  borderRadius: 18,
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '1px solid rgba(255,255,255,0.08)',
+                  borderRadius: 16,
+                  background: theme.colors.surfaceAlt,
+                  border: `1px solid ${theme.colors.border}`,
                 }}
               >
                 <div>
-                  <p style={{ margin: 0, color: theme.colors.text, fontWeight: 600 }}>{item.product.name}</p>
+                  <p style={{ margin: 0, color: theme.colors.text, fontWeight: 700 }}>{item.product.name}</p>
                   <p style={{ margin: '4px 0 0', color: theme.colors.textMuted, fontSize: 13 }}>Qty {item.quantity}</p>
                 </div>
-                <p style={{ margin: 0, color: theme.colors.gold, fontWeight: 600 }}>{formatCurrency(item.product.price * item.quantity)}</p>
+                <p style={{ margin: 0, color: theme.colors.text, fontWeight: 800 }}>{formatCurrency(item.product.price * item.quantity)}</p>
               </div>
             ))}
           </div>
@@ -156,7 +156,7 @@ function Checkout() {
         </section>
 
         <aside style={{ position: 'sticky', top: 104, ...cardStyle({ padding: 24 }) }}>
-          <h2 style={{ ...sectionTitleStyle, fontSize: '2.4rem' }}>Payment</h2>
+          <h2 style={{ ...sectionTitleStyle, fontSize: '2rem' }}>Payment</h2>
           <div style={{ marginTop: 18, display: 'grid', gap: 12 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', color: theme.colors.textMuted }}>
               <span>Total</span>
@@ -169,7 +169,7 @@ function Checkout() {
             {paying ? 'Processing...' : `Pay ${formatCurrency(total)}`}
           </button>
           <p style={{ ...bodyStyle, marginTop: 14, fontSize: 13 }}>
-            Your payment is handled through Razorpay with verification on successful completion.
+            Payment is verified after completion and successful orders appear in your history.
           </p>
         </aside>
       </div>

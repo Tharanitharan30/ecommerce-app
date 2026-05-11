@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import api from '../services/api';
 import ProductCard from '../components/ProductCard';
@@ -10,6 +9,7 @@ import {
   emptyStateStyle,
   eyebrowStyle,
   fadeUp,
+  inputStyle,
   pageStyle,
   sectionTitleStyle,
   skeletonStyle,
@@ -62,26 +62,22 @@ function Home() {
       <section
         style={{
           ...cardStyle({
-            padding: '40px clamp(24px, 5vw, 48px)',
+            padding: '36px clamp(22px, 5vw, 42px)',
             display: 'grid',
-            gap: 24,
+            gap: 22,
             background:
-              'radial-gradient(circle at top right, rgba(201,169,110,0.16), transparent 22%), linear-gradient(180deg, rgba(26,26,26,0.95), rgba(15,15,15,0.96))',
+              'linear-gradient(135deg, rgba(255,255,255,0.96), rgba(248,250,252,0.92))',
           }),
         }}
       >
-        <p style={eyebrowStyle}>Curated Luxury Commerce</p>
-        <div style={{ display: 'grid', gap: 18, maxWidth: 760 }}>
-          <h1 style={{ ...sectionTitleStyle, fontSize: 'clamp(3.4rem, 8vw, 5.7rem)' }}>
-            Modern essentials for elevated living.
+        <p style={eyebrowStyle}>Online store</p>
+        <div style={{ display: 'grid', gap: 14, maxWidth: 720 }}>
+          <h1 style={{ ...sectionTitleStyle, fontSize: 'clamp(3rem, 7vw, 4.8rem)' }}>
+            Shopping made clear, fast, and dependable.
           </h1>
-          <p style={{ ...bodyStyle, fontSize: 17, maxWidth: 620 }}>
-            Discover premium electronics, fashion, and travel pieces with a refined shopping experience built for speed, clarity, and trust.
+          <p style={{ ...bodyStyle, fontSize: 16, maxWidth: 620 }}>
+            Browse products, compare prices, and place orders in a clean storefront designed to feel professional on every screen.
           </p>
-        </div>
-        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-          <Link to="#catalog" style={{ ...buttonStyle(), textDecoration: 'none' }}>Shop Collection</Link>
-          <button style={buttonStyle('secondary')}>Explore New Arrivals</button>
         </div>
         <div
           style={{
@@ -91,19 +87,19 @@ function Home() {
           }}
         >
           <div style={statCardStyle}>
-            <p style={{ margin: 0, color: theme.colors.gold, fontSize: 12, letterSpacing: '0.22em', textTransform: 'uppercase' }}>Catalog</p>
-            <p style={{ margin: 0, fontSize: 34, fontWeight: 700, color: theme.colors.text }}>500+</p>
-            <p style={{ margin: 0, color: theme.colors.textMuted }}>Products across premium categories</p>
+            <p style={eyebrowStyle}>Catalog</p>
+            <p style={{ margin: 0, fontSize: 30, fontWeight: 800, color: theme.colors.text }}>500+</p>
+            <p style={{ margin: 0, color: theme.colors.textMuted }}>Products across essential categories</p>
           </div>
           <div style={statCardStyle}>
-            <p style={{ margin: 0, color: theme.colors.gold, fontSize: 12, letterSpacing: '0.22em', textTransform: 'uppercase' }}>Community</p>
-            <p style={{ margin: 0, fontSize: 34, fontWeight: 700, color: theme.colors.text }}>50K</p>
-            <p style={{ margin: 0, color: theme.colors.textMuted }}>Shoppers choosing curated quality</p>
+            <p style={eyebrowStyle}>Delivery</p>
+            <p style={{ margin: 0, fontSize: 30, fontWeight: 800, color: theme.colors.text }}>24h</p>
+            <p style={{ margin: 0, color: theme.colors.textMuted }}>Fast dispatch on selected items</p>
           </div>
           <div style={statCardStyle}>
-            <p style={{ margin: 0, color: theme.colors.gold, fontSize: 12, letterSpacing: '0.22em', textTransform: 'uppercase' }}>Shipping</p>
-            <p style={{ margin: 0, fontSize: 34, fontWeight: 700, color: theme.colors.text }}>24h</p>
-            <p style={{ margin: 0, color: theme.colors.textMuted }}>Fast dispatch on selected products</p>
+            <p style={eyebrowStyle}>Support</p>
+            <p style={{ margin: 0, fontSize: 30, fontWeight: 800, color: theme.colors.text }}>7 days</p>
+            <p style={{ margin: 0, color: theme.colors.textMuted }}>Order help and return guidance</p>
           </div>
         </div>
       </section>
@@ -111,48 +107,31 @@ function Home() {
       <section
         id="catalog"
         style={{
-          position: 'sticky',
-          top: 98,
-          zIndex: 20,
           marginTop: 24,
           ...cardStyle({
-            padding: 16,
+            padding: 18,
             display: 'grid',
             gap: 16,
-            backdropFilter: 'blur(18px)',
+            backdropFilter: 'blur(14px)',
           }),
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap', alignItems: 'center' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap', alignItems: 'end' }}>
           <div>
-            <p style={eyebrowStyle}>Filter Bar</p>
-            <h2 style={{ ...sectionTitleStyle, fontSize: '2.2rem', marginTop: 8 }}>Browse The Collection</h2>
+            <p style={eyebrowStyle}>Product catalog</p>
+            <h2 style={{ ...sectionTitleStyle, fontSize: '2rem', marginTop: 8 }}>Browse products</h2>
           </div>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search products"
-              style={{
-                minWidth: 220,
-                borderRadius: 999,
-                border: '1px solid rgba(255,255,255,0.08)',
-                background: 'rgba(255,255,255,0.03)',
-                color: theme.colors.text,
-                padding: '13px 16px',
-              }}
+              style={inputStyle(false, { minWidth: 220 })}
             />
             <select
               value={sortBy}
               onChange={(event) => setSortBy(event.target.value)}
-              style={{
-                minWidth: 180,
-                borderRadius: 999,
-                border: '1px solid rgba(255,255,255,0.08)',
-                background: 'rgba(255,255,255,0.03)',
-                color: theme.colors.text,
-                padding: '13px 16px',
-              }}
+              style={inputStyle(false, { minWidth: 180 })}
             >
               <option value="featured">Featured</option>
               <option value="price-low">Price: Low to High</option>
@@ -169,12 +148,10 @@ function Home() {
               <button
                 key={item}
                 onClick={() => setCategory(item)}
-                style={{
-                  ...buttonStyle(active ? 'primary' : 'ghost', {
-                    whiteSpace: 'nowrap',
-                    padding: '12px 18px',
-                  }),
-                }}
+                style={buttonStyle(active ? 'primary' : 'ghost', {
+                  whiteSpace: 'nowrap',
+                  padding: '10px 16px',
+                })}
               >
                 {item}
               </button>
@@ -194,22 +171,22 @@ function Home() {
           >
             {Array.from({ length: 6 }).map((_, index) => (
               <div key={index} style={cardStyle({ padding: 18 })}>
-                <div style={skeletonStyle(250)} />
+                <div style={skeletonStyle(220)} />
                 <div style={{ marginTop: 16, display: 'grid', gap: 10 }}>
                   <div style={skeletonStyle(14, { width: '30%' })} />
-                  <div style={skeletonStyle(26, { width: '75%' })} />
+                  <div style={skeletonStyle(24, { width: '75%' })} />
                   <div style={skeletonStyle(16, { width: '55%' })} />
-                  <div style={skeletonStyle(46, { width: '48%', borderRadius: 999, marginTop: 12 })} />
+                  <div style={skeletonStyle(42, { width: '48%', borderRadius: 14, marginTop: 12 })} />
                 </div>
               </div>
             ))}
           </div>
         ) : filteredProducts.length === 0 ? (
           <div style={emptyStateStyle}>
-            <div style={{ fontSize: 52 }}>◇</div>
-            <h3 style={{ margin: 0, fontFamily: 'var(--font-heading)', fontSize: 42 }}>No products found</h3>
+            <div style={{ fontSize: 42, color: theme.colors.textMuted }}>[]</div>
+            <h3 style={{ margin: 0, fontSize: 32, color: theme.colors.text }}>No products found</h3>
             <p style={{ ...bodyStyle, maxWidth: 420 }}>
-              Try another search term or switch categories to discover more premium items.
+              Try another search term or switch categories to see more results.
             </p>
             <button
               onClick={() => {
@@ -219,7 +196,7 @@ function Home() {
               }}
               style={buttonStyle()}
             >
-              Reset Filters
+              Reset filters
             </button>
           </div>
         ) : (

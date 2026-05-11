@@ -33,19 +33,21 @@ function Register() {
         style={{
           ...cardStyle({
             width: '100%',
-            maxWidth: 480,
-            padding: '40px 32px',
+            maxWidth: 460,
+            padding: '36px 30px',
           }),
         }}
       >
-        <p style={{ margin: 0, color: theme.colors.gold, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.22em' }}>Create Account</p>
-        <h1 style={{ ...sectionTitleStyle, fontSize: '3.3rem', marginTop: 10 }}>Register</h1>
-        <p style={{ ...bodyStyle, marginTop: 10 }}>Join a premium storefront built for modern shopping.</p>
+        <p style={{ margin: 0, color: theme.colors.primary, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.18em', fontWeight: 700 }}>
+          Create account
+        </p>
+        <h1 style={{ ...sectionTitleStyle, fontSize: '2.8rem', marginTop: 10 }}>Register</h1>
+        <p style={{ ...bodyStyle, marginTop: 10 }}>Set up your account to manage orders and checkout faster.</p>
 
         <div style={{ display: 'grid', gap: 14, marginTop: 28 }}>
           <input
             type="text"
-            placeholder="Full Name"
+            placeholder="Full name"
             value={form.name}
             onChange={(event) => setForm({ ...form, name: event.target.value })}
             style={inputStyle(Boolean(error))}
@@ -65,12 +67,14 @@ function Register() {
             style={inputStyle(Boolean(error))}
           />
           {error && <p style={{ margin: 0, color: theme.colors.danger, fontSize: 14 }}>{error}</p>}
-          <button onClick={handleSubmit} style={buttonStyle()}>Create Account</button>
+          <button onClick={handleSubmit} style={buttonStyle()}>
+            Create account
+          </button>
         </div>
 
         <p style={{ ...bodyStyle, marginTop: 22, textAlign: 'center' }}>
           Already have an account?{' '}
-          <Link to="/login" style={{ color: theme.colors.gold, textDecoration: 'none' }}>
+          <Link to="/login" style={{ color: theme.colors.primary, textDecoration: 'none', fontWeight: 700 }}>
             Login
           </Link>
         </p>
