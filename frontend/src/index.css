@@ -1,20 +1,21 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,500;6..72,600;6..72,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --color-background: #f4f7fb;
-  --color-surface: rgba(255, 255, 255, 0.92);
-  --color-surface-alt: #f8fafc;
-  --color-border: rgba(148, 163, 184, 0.24);
-  --color-text: #0f172a;
-  --color-text-muted: #5b6474;
-  --color-primary: #2563eb;
-  --color-primary-soft: rgba(37, 99, 235, 0.1);
-  --color-danger: #dc2626;
+  --color-background: #f9f9f9;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f3f3f4;
+  --color-surface-muted: #f3f3f4;
+  --color-border: rgba(196, 198, 208, 0.65);
+  --color-border-strong: #74777f;
+  --color-text: #1a1c1c;
+  --color-text-muted: #43474e;
+  --color-primary: #000e24;
+  --color-primary-soft: rgba(0, 14, 36, 0.08);
+  --color-danger: #ba1a1a;
   --color-success: #16a34a;
-  --color-info: #2563eb;
+  --color-info: #2c4771;
   --color-amber: #d97706;
-  --font-heading: 'Newsreader', serif;
-  --font-body: 'Manrope', sans-serif;
+  --font-body: 'Inter', sans-serif;
 }
 
 html {
@@ -25,8 +26,8 @@ body {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left, rgba(37, 99, 235, 0.09), transparent 24%),
-    radial-gradient(circle at bottom right, rgba(15, 23, 42, 0.06), transparent 22%),
+    radial-gradient(circle at 20% 20%, rgba(214, 227, 255, 0.18), transparent 24%),
+    radial-gradient(circle at 82% 76%, rgba(173, 199, 248, 0.1), transparent 20%),
     var(--color-background);
   color: var(--color-text);
   font-family: var(--font-body);
@@ -49,13 +50,46 @@ select {
   font: inherit;
 }
 
+button {
+  background: none;
+}
+
 input::placeholder,
 textarea::placeholder {
-  color: #94a3b8;
+  color: #a0a3ab;
 }
 
 #root {
   min-height: 100vh;
+}
+
+.nav-mobile-toggle,
+.nav-mobile-panel {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  body {
+    background:
+      radial-gradient(circle at top, rgba(214, 227, 255, 0.16), transparent 32%),
+      var(--color-background);
+  }
+
+  .nav-links,
+  .nav-actions > a:not(:first-of-type),
+  .nav-actions > span,
+  .nav-actions > button:not(.nav-mobile-toggle) {
+    display: none !important;
+  }
+
+  .nav-mobile-toggle,
+  .nav-mobile-panel {
+    display: block !important;
+  }
+
+  .nav-mobile-panel a {
+    width: fit-content;
+  }
 }
 
 @keyframes shimmer {

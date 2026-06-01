@@ -54,14 +54,18 @@ export default function ProductCard({ product, loading = false, index = 0 }) {
       {...fadeUp}
       transition={{ ...fadeUp.transition, delay: index * 0.04 }}
       whileHover={{ y: -4 }}
-      style={cardStyle({ overflow: 'hidden' })}
+      style={cardStyle({ overflow: 'hidden', background: 'transparent', border: 'none' })}
     >
       <Link to={`/product/${product._id}`} style={{ display: 'block', textDecoration: 'none' }}>
         <div
           style={{
             position: 'relative',
-            background: '#eef2f7',
-            padding: 14,
+            aspectRatio: '4 / 5',
+            background: theme.colors.surfaceAlt,
+            overflow: 'hidden',
+            borderRadius: theme.radius.md,
+            border: `1px solid ${theme.colors.border}`,
+            marginBottom: 20,
           }}
         >
           <img
@@ -69,39 +73,29 @@ export default function ProductCard({ product, loading = false, index = 0 }) {
             alt={product.name}
             style={{
               width: '100%',
-              height: 220,
+              height: '100%',
               objectFit: 'cover',
-              borderRadius: 18,
               display: 'block',
+              transition: 'transform 700ms ease',
             }}
           />
           <div
             style={{
               position: 'absolute',
-              top: 24,
-              left: 24,
+              top: 16,
+              right: 16,
               ...badgeStyle('gold'),
+              background: 'rgba(255, 255, 255, 0.9)',
             }}
           >
-            {product.category}
+            {lowStock ? 'Low stock' : 'New'}
           </div>
-          {lowStock && (
-            <div
-              style={{
-                position: 'absolute',
-                top: 24,
-                right: 24,
-                ...badgeStyle('danger'),
-              }}
-            >
-              Low stock
-            </div>
-          )}
         </div>
       </Link>
 
-      <div style={{ padding: 18, display: 'grid', gap: 14 }}>
+      <div style={{ display: 'grid', gap: 10 }}>
         <div>
+          <p style={{ ...eyebrowFallbackStyle, marginBottom: 6 }}>{product.category}</p>
           <Link to={`/product/${product._id}`} style={{ textDecoration: 'none' }}>
             <h3
               style={{
@@ -109,15 +103,18 @@ export default function ProductCard({ product, loading = false, index = 0 }) {
                 color: theme.colors.text,
                 fontSize: 20,
                 lineHeight: 1.2,
+                fontWeight: 600,
               }}
             >
               {product.name}
             </h3>
           </Link>
-          <p style={bodyStyle}>{product.description || 'Reliable essentials for everyday shopping.'}</p>
+          <p style={{ ...bodyStyle, fontSize: 15 }}>
+            {product.description || 'Reliable essentials for everyday shopping.'}
+          </p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'end', justifyContent: 'space-between', gap: 12 }}>
           <div>
             <p style={{ margin: 0, color: theme.colors.text, fontWeight: 800, fontSize: 22 }}>
               {formatCurrency(product.price)}
@@ -126,11 +123,20 @@ export default function ProductCard({ product, loading = false, index = 0 }) {
               {product.stock} available
             </p>
           </div>
-          <button onClick={handleAdd} style={buttonStyle(added ? 'secondary' : 'primary')}>
-            {added ? 'Added' : 'Add to cart'}
+          <button onClick={handleAdd} style={buttonStyle(added ? 'secondary' : 'primary', { padding: '12px 16px' })}>
+            {added ? 'Added' : 'Add'}
           </button>
         </div>
       </div>
     </motion.article>
   );
 }
+
+const eyebrowFallbackStyle = {
+  margin: 0,
+  color: theme.colors.textMuted,
+  fontSize: 12,
+  letterSpacing: '0.14em',
+  textTransform: 'uppercase',
+  fontWeight: 600,
+};

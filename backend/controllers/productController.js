@@ -1,5 +1,10 @@
 const Product = require('../models/Product');
 
+const buildProductQueryForUser = (user) => {
+  if (user?.role === 'admin') return {};
+  return { seller: user.id };
+};
+
 // GET /api/products
 exports.getAllProducts = async (req, res) => {
   try {
@@ -19,7 +24,9 @@ exports.getAllProducts = async (req, res) => {
     if (sort === 'price_desc') sortOption = { price: -1 };
     if (sort === 'newest')     sortOption = { createdAt: -1 };
 
-    const products = await Product.find(query).sort(sortOption);
+    const products = await Product.find(query)
+      .populate('seller', 'name email role')
+      .sort(sortOption);
     res.json(products);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -29,7 +36,8 @@ exports.getAllProducts = async (req, res) => {
 // GET /api/products/:id
 exports.getProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findById(req.params.id)
+      .populate('seller', 'name email role');
     if (!product) return res.status(404).json({ message: 'Product not found' });
     res.json(product);
   } catch (err) {
@@ -37,21 +45,42 @@ exports.getProductById = async (req, res) => {
   }
 };
 
-// POST /api/products (admin only)
+// GET /api/products/mine (seller/admin)
+exports.getMyProducts = async (req, res) => {
+  try {
+    const products = await Product.find(buildProductQueryForUser(req.user))
+      .populate('seller', 'name email role')
+      .sort({ createdAt: -1 });
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// POST /api/products (seller/admin)
 exports.createProduct = async (req, res) => {
   try {
-    const product = await Product.create(req.body);
+    const product = await Product.create({
+      ...req.body,
+      seller: req.user.id,
+    });
     res.status(201).json(product);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 };
 
-// PUT /api/products/:id (admin only)
+// PUT /api/products/:id (seller/admin)
 exports.updateProduct = async (req, res) => {
   try {
-    const product = await Product.findByIdAndUpdate(
-      req.params.id, req.body, { new: true, runValidators: true }
+    const filter = req.user.role === 'admin'
+      ? { _id: req.params.id }
+      : { _id: req.params.id, seller: req.user.id };
+
+    const product = await Product.findOneAndUpdate(
+      filter,
+      req.body,
+      { new: true, runValidators: true }
     );
     if (!product) return res.status(404).json({ message: 'Product not found' });
     res.json(product);
@@ -60,10 +89,14 @@ exports.updateProduct = async (req, res) => {
   }
 };
 
-// DELETE /api/products/:id (admin only)
+// DELETE /api/products/:id (seller/admin)
 exports.deleteProduct = async (req, res) => {
   try {
-    const product = await Product.findByIdAndDelete(req.params.id);
+    const filter = req.user.role === 'admin'
+      ? { _id: req.params.id }
+      : { _id: req.params.id, seller: req.user.id };
+
+    const product = await Product.findOneAndDelete(filter);
     if (!product) return res.status(404).json({ message: 'Product not found' });
     res.json({ message: 'Product deleted' });
   } catch (err) {

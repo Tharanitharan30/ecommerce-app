@@ -6,12 +6,16 @@ const {
   getAllOrders,
   updateOrderStatus,
   createPaymentOrder,
-  verifyPayment
+  verifyPayment,
+  createPaymentForExistingOrder,
+  verifyExistingOrderPayment,
 } = require('../controllers/orderController');
 const { protect, adminOnly } = require('../middleware/authMiddleware');
 
 router.post('/pay',           protect, createPaymentOrder);
 router.post('/verify',        protect, verifyPayment);
+router.post('/:id/pay',       protect, createPaymentForExistingOrder);
+router.post('/:id/verify',    protect, verifyExistingOrderPayment);
 router.post('/',              protect, placeOrder);
 router.get('/myorders',       protect, getMyOrders);
 router.get('/',               protect, adminOnly, getAllOrders);

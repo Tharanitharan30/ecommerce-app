@@ -17,4 +17,10 @@ const adminOnly = (req, res, next) => {
   next();
 };
 
-module.exports = { protect, adminOnly };
+const sellerOrAdminOnly = (req, res, next) => {
+  if (!['seller', 'admin'].includes(req.user?.role))
+    return res.status(403).json({ message: 'Seller access only' });
+  next();
+};
+
+module.exports = { protect, adminOnly, sellerOrAdminOnly };

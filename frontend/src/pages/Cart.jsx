@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import api from '../services/api';
 import useCartStore from '../store/cartStore';
+import useAuthStore from '../store/authStore';
 import {
   bodyStyle,
   buttonStyle,
@@ -10,7 +11,6 @@ import {
   emptyStateStyle,
   fadeUp,
   formatCurrency,
-  inputStyle,
   pageStyle,
   quantityButtonStyle,
   sectionTitleStyle,
@@ -21,7 +21,7 @@ import {
 function Cart() {
   const navigate = useNavigate();
   const { cart, fetchCart, updateItem, removeItem } = useCartStore();
-  const [address, setAddress] = useState('');
+  const { user } = useAuthStore();
   const [ordering, setOrdering] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -35,16 +35,17 @@ function Cart() {
   }, [fetchCart]);
 
   const total = cart?.items?.reduce((sum, item) => sum + item.product.price * item.quantity, 0) || 0;
+  const deliveryAddress = user?.address?.trim() || '';
 
   const handleOrder = async () => {
-    if (!address.trim()) {
-      alert('Please enter delivery address');
+    if (!deliveryAddress) {
+      alert('Please add your delivery address in profile');
       return;
     }
 
     setOrdering(true);
     try {
-      await api.post('/orders', { address });
+      await api.post('/orders', { address: deliveryAddress });
       await fetchCart();
       navigate('/orders');
     } catch (err) {
@@ -83,10 +84,10 @@ function Cart() {
 
   return (
     <motion.div {...fadeUp} style={pageStyle}>
-      <div style={{ display: 'grid', gap: 24, alignItems: 'start', gridTemplateColumns: 'minmax(0, 1fr) minmax(320px, 360px)' }}>
-        <section style={cardStyle({ padding: 22, overflow: 'hidden' })}>
+      <div style={{ display: 'grid', gap: 32, alignItems: 'start', gridTemplateColumns: 'minmax(0, 1fr) minmax(320px, 360px)' }}>
+        <section style={{ overflow: 'hidden' }}>
           <div style={{ marginBottom: 18 }}>
-            <h1 style={{ ...sectionTitleStyle, fontSize: '2.6rem' }}>Your cart</h1>
+            <h1 style={{ ...sectionTitleStyle, fontSize: 'clamp(2.4rem, 4vw, 3rem)' }}>Shopping Cart</h1>
             <p style={{ ...bodyStyle, marginTop: 8 }}>Review your selected items before placing the order.</p>
           </div>
 
@@ -106,7 +107,7 @@ function Cart() {
                   <tr key={item.product._id} style={{ borderTop: `1px solid ${theme.colors.border}` }}>
                     <td style={{ padding: '18px 0' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                        <img src={item.product.image || 'https://via.placeholder.com/80'} alt={item.product.name} style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 16 }} />
+                        <img src={item.product.image || 'https://via.placeholder.com/80'} alt={item.product.name} style={{ width: 96, height: 128, objectFit: 'cover', borderRadius: 4, background: theme.colors.surfaceAlt }} />
                         <div>
                           <p style={{ margin: 0, color: theme.colors.text, fontWeight: 700 }}>{item.product.name}</p>
                           <p style={{ margin: '6px 0 0', color: theme.colors.textMuted, fontSize: 13 }}>{item.product.category}</p>
@@ -149,17 +150,21 @@ function Cart() {
             </div>
           </div>
 
-          <textarea
-            rows={5}
-            value={address}
-            onChange={(event) => setAddress(event.target.value)}
-            placeholder="Enter delivery address"
-            style={{ ...inputStyle(false, { marginTop: 18, resize: 'vertical' }) }}
-          />
+          <div style={{ ...cardStyle({ marginTop: 18, padding: 16, background: theme.colors.surfaceAlt }) }}>
+            <p style={{ margin: 0, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.12em', color: theme.colors.textMuted, fontWeight: 600 }}>
+              Delivery address
+            </p>
+            <p style={{ ...bodyStyle, marginTop: 10, color: deliveryAddress ? theme.colors.text : theme.colors.textMuted }}>
+              {deliveryAddress || 'No address saved in your profile yet.'}
+            </p>
+          </div>
 
           <div style={{ display: 'grid', gap: 12, marginTop: 18 }}>
             <button onClick={handleOrder} disabled={ordering} style={buttonStyle('primary', ordering ? { opacity: 0.65 } : {})}>
               {ordering ? 'Placing order...' : 'Place order'}
+            </button>
+            <button onClick={() => navigate('/profile')} style={buttonStyle('ghost')}>
+              Edit address
             </button>
             <button onClick={() => navigate('/checkout')} style={buttonStyle('secondary')}>
               Proceed to checkout

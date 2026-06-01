@@ -8,6 +8,20 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
+const createRazorpayOrder = async (amount, receipt) => {
+  return razorpay.orders.create({
+    amount: amount * 100,
+    currency: 'INR',
+    receipt,
+  });
+};
+
+const buildReceipt = (prefix, id = '') => {
+  const shortId = String(id).slice(-12);
+  const shortTime = Date.now().toString().slice(-8);
+  return `${prefix}_${shortId}_${shortTime}`.slice(0, 40);
+};
+
 // POST /api/orders
 exports.placeOrder = async (req, res) => {
   try {
@@ -80,17 +94,41 @@ exports.updateOrderStatus = async (req, res) => {
 exports.createPaymentOrder = async (req, res) => {
   try {
     const { amount } = req.body;
-    const options = {
-      amount:   amount * 100,
-      currency: 'INR',
-      receipt:  `receipt_${Date.now()}`,
-    };
-    const order = await razorpay.orders.create(options);
+    const order = await createRazorpayOrder(amount, buildReceipt('receipt'));
     res.json({
       orderId:  order.id,
       amount:   order.amount,
       currency: order.currency,
       key:      process.env.RAZORPAY_KEY_ID,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// POST /api/orders/:id/pay
+exports.createPaymentForExistingOrder = async (req, res) => {
+  try {
+    const order = await Order.findOne({ _id: req.params.id, user: req.user.id });
+
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+    if (order.isPaid) return res.status(400).json({ message: 'Order is already paid' });
+
+    const razorpayOrder = await createRazorpayOrder(
+      order.totalPrice,
+      buildReceipt('order', order._id)
+    );
+
+    res.json({
+      orderId: razorpayOrder.id,
+      amount: razorpayOrder.amount,
+      currency: razorpayOrder.currency,
+      key: process.env.RAZORPAY_KEY_ID,
+      order: {
+        id: order._id,
+        totalPrice: order.totalPrice,
+        address: order.address,
+      },
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -130,6 +168,39 @@ exports.verifyPayment = async (req, res) => {
 
     await Cart.findOneAndDelete({ user: req.user.id });
     res.status(201).json({ message: 'Payment successful', order });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// POST /api/orders/:id/verify
+exports.verifyExistingOrderPayment = async (req, res) => {
+  try {
+    const {
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+    } = req.body;
+
+    const order = await Order.findOne({ _id: req.params.id, user: req.user.id });
+
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+    if (order.isPaid) return res.status(400).json({ message: 'Order is already paid' });
+
+    const body = razorpay_order_id + '|' + razorpay_payment_id;
+    const expectedSignature = crypto
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .update(body)
+      .digest('hex');
+
+    if (expectedSignature !== razorpay_signature)
+      return res.status(400).json({ message: 'Payment verification failed' });
+
+    order.isPaid = true;
+    order.paymentId = razorpay_payment_id;
+    await order.save();
+
+    res.json({ message: 'Payment successful', order });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

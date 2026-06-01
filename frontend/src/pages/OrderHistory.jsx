@@ -21,8 +21,9 @@ function OrderHistory() {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [payingOrderId, setPayingOrderId] = useState('');
 
-  useEffect(() => {
+  const loadOrders = () => {
     let canceled = false;
 
     api.get('/orders/myorders')
@@ -38,7 +39,64 @@ function OrderHistory() {
     return () => {
       canceled = true;
     };
+  };
+
+  useEffect(() => {
+    return loadOrders();
   }, []);
+
+  const handlePayNow = async (order) => {
+    setPayingOrderId(order._id);
+
+    try {
+      const { data } = await api.post(`/orders/${order._id}/pay`);
+      if (typeof window.Razorpay !== 'function') {
+        throw new Error('Razorpay SDK failed to load');
+      }
+
+      const options = {
+        key: data.key,
+        amount: data.amount,
+        currency: data.currency,
+        order_id: data.orderId,
+        name: 'Ecommerce',
+        description: `Payment for order ${order._id.slice(-6).toUpperCase()}`,
+        handler: async (response) => {
+          await api.post(`/orders/${order._id}/verify`, {
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+          });
+
+          setOrders((current) => current.map((item) => (
+            item._id === order._id
+              ? { ...item, isPaid: true, paymentId: response.razorpay_payment_id }
+              : item
+          )));
+          setPayingOrderId('');
+        },
+        theme: { color: '#000e24' },
+        modal: {
+          ondismiss: () => setPayingOrderId(''),
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+      razorpay.on('payment.failed', () => {
+        setPayingOrderId('');
+        alert('Payment failed. Please try again.');
+      });
+    } catch (error) {
+      setPayingOrderId('');
+      console.error('Pending payment start failed:', error);
+      const backendMessage =
+        typeof error.response?.data === 'string'
+          ? error.response.data
+          : error.response?.data?.message;
+      alert(backendMessage || error.message || 'Unable to start payment');
+    }
+  };
 
   if (loading) {
     return (
@@ -74,9 +132,12 @@ function OrderHistory() {
 
   return (
     <motion.div {...fadeUp} style={pageStyle}>
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ ...sectionTitleStyle, fontSize: '2.6rem' }}>Order history</h1>
-        <p style={{ ...bodyStyle, marginTop: 8 }}>Track recent orders, payment confirmations, and delivery progress.</p>
+      <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', alignItems: 'end' }}>
+        <div>
+          <h1 style={{ ...sectionTitleStyle, fontSize: 'clamp(2.4rem, 4vw, 3rem)' }}>My Orders</h1>
+          <p style={{ ...bodyStyle, marginTop: 8 }}>Track recent orders, payment confirmations, and delivery progress.</p>
+        </div>
+        <button style={buttonStyle('ghost')}>Filter</button>
       </div>
 
       <div style={{ display: 'grid', gap: 18 }}>
@@ -91,7 +152,9 @@ function OrderHistory() {
               </div>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <span style={badgeStyle(statusTone[order.status] || 'default')}>{order.status}</span>
-                <span style={badgeStyle('gold')}>Payment confirmed</span>
+                <span style={badgeStyle(order.isPaid ? 'gold' : 'amber')}>
+                  {order.isPaid ? 'Payment confirmed' : 'Pending payment'}
+                </span>
               </div>
             </div>
 
@@ -118,6 +181,19 @@ function OrderHistory() {
               <p style={{ margin: 0, color: theme.colors.text, fontWeight: 800, fontSize: 22 }}>
                 {formatCurrency(order.totalPrice)}
               </p>
+            </div>
+            <div style={{ marginTop: 18, display: 'flex', justifyContent: 'flex-end', gap: 12, flexWrap: 'wrap' }}>
+              {!order.isPaid && (
+                <button
+                  onClick={() => handlePayNow(order)}
+                  disabled={payingOrderId === order._id}
+                  style={buttonStyle('secondary', payingOrderId === order._id ? { opacity: 0.65 } : {})}
+                >
+                  {payingOrderId === order._id ? 'Processing...' : 'Pay now'}
+                </button>
+              )}
+              <button style={buttonStyle('secondary')}>Track Order</button>
+              <button style={buttonStyle()}>View Details</button>
             </div>
           </article>
         ))}

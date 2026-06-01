@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import api from '../services/api';
 import useCartStore from '../store/cartStore';
+import useAuthStore from '../store/authStore';
 import {
   badgeStyle,
   bodyStyle,
@@ -11,7 +12,6 @@ import {
   emptyStateStyle,
   fadeUp,
   formatCurrency,
-  inputStyle,
   pageStyle,
   sectionTitleStyle,
   skeletonStyle,
@@ -21,7 +21,7 @@ import {
 function Checkout() {
   const navigate = useNavigate();
   const { cart, fetchCart, clearCart } = useCartStore();
-  const [address, setAddress] = useState('');
+  const { user } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
 
@@ -35,10 +35,11 @@ function Checkout() {
   }, [fetchCart]);
 
   const total = cart?.items?.reduce((sum, item) => sum + item.product.price * item.quantity, 0) || 0;
+  const deliveryAddress = user?.address?.trim() || '';
 
   const handlePayment = async () => {
-    if (!address.trim()) {
-      alert('Please enter delivery address');
+    if (!deliveryAddress) {
+      alert('Please add your delivery address in profile');
       return;
     }
 
@@ -66,7 +67,7 @@ function Checkout() {
             razorpay_signature: response.razorpay_signature,
             cartItems,
             totalPrice: total,
-            address,
+            address: deliveryAddress,
           });
 
           clearCart();
@@ -116,9 +117,9 @@ function Checkout() {
 
   return (
     <motion.div {...fadeUp} style={pageStyle}>
-      <div style={{ display: 'grid', gap: 24, gridTemplateColumns: 'minmax(0, 1fr) minmax(320px, 360px)' }}>
+      <div style={{ display: 'grid', gap: 32, gridTemplateColumns: 'minmax(0, 1fr) minmax(320px, 360px)' }}>
         <section style={cardStyle({ padding: 24 })}>
-          <h1 style={{ ...sectionTitleStyle, fontSize: '2.6rem' }}>Checkout</h1>
+          <h1 style={{ ...sectionTitleStyle, fontSize: 'clamp(2.4rem, 4vw, 3rem)' }}>Checkout</h1>
           <p style={{ ...bodyStyle, marginTop: 8 }}>Review your items and pay securely with Razorpay.</p>
 
           <div style={{ marginTop: 22, display: 'grid', gap: 12 }}>
@@ -145,13 +146,17 @@ function Checkout() {
           </div>
 
           <div style={{ marginTop: 22 }}>
-            <textarea
-              rows={5}
-              value={address}
-              onChange={(event) => setAddress(event.target.value)}
-              placeholder="Delivery address"
-              style={inputStyle(false, { resize: 'vertical' })}
-            />
+            <div style={cardStyle({ padding: 16, background: theme.colors.surfaceAlt })}>
+              <p style={{ margin: 0, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.12em', color: theme.colors.textMuted, fontWeight: 600 }}>
+                Delivery address
+              </p>
+              <p style={{ ...bodyStyle, marginTop: 10, color: deliveryAddress ? theme.colors.text : theme.colors.textMuted }}>
+                {deliveryAddress || 'No address saved in your profile yet.'}
+              </p>
+              <button onClick={() => navigate('/profile')} style={{ ...buttonStyle('ghost'), marginTop: 14 }}>
+                Edit address
+              </button>
+            </div>
           </div>
         </section>
 

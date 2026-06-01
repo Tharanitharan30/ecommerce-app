@@ -21,6 +21,7 @@ function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -29,12 +30,16 @@ function Navbar() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
+
   const cartCount = cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
 
   const links = [
-    { to: '/', label: 'Home' },
-    { to: '/orders', label: 'Orders' },
-    { to: '/cart', label: 'Cart' },
+    { to: '/', label: 'New Arrivals' },
+    ...(user ? [{ to: '/orders', label: 'Orders' }, { to: '/profile', label: 'Profile' }] : []),
+    ...(['seller', 'admin'].includes(user?.role) ? [{ to: '/seller', label: 'Seller' }] : []),
   ];
 
   return (
@@ -44,63 +49,45 @@ function Navbar() {
         position: 'sticky',
         top: 0,
         zIndex: 50,
-        padding: '16px 16px 0',
+        background: scrolled ? 'rgba(249, 249, 249, 0.92)' : 'rgba(249, 249, 249, 0.72)',
+        backdropFilter: 'blur(14px)',
+        borderBottom: `1px solid ${theme.colors.border}`,
       }}
     >
       <nav
         style={{
-          ...cardStyle({
-            maxWidth: 1200,
-            margin: '0 auto',
-            padding: '14px 18px',
-            display: 'grid',
-            gridTemplateColumns: 'auto 1fr auto',
-            alignItems: 'center',
-            gap: 16,
-            backdropFilter: 'blur(18px)',
-            background: scrolled ? 'rgba(255, 255, 255, 0.96)' : 'rgba(255, 255, 255, 0.9)',
-            boxShadow: scrolled ? theme.shadow.glow : theme.shadow.soft,
-          }),
+          maxWidth: 1440,
+          margin: '0 auto',
+          padding: '18px 16px',
+          display: 'grid',
+          gridTemplateColumns: 'auto 1fr auto',
+          alignItems: 'center',
+          gap: 16,
         }}
       >
         <Link
           to="/"
           style={{
             textDecoration: 'none',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 12,
+            fontSize: 'clamp(2rem, 3vw, 3rem)',
+            letterSpacing: '-0.04em',
+            fontWeight: 600,
+            color: theme.colors.primary,
+            lineHeight: 1,
           }}
         >
-          <div
-            style={{
-              width: 42,
-              height: 42,
-              borderRadius: 14,
-              background: '#0f172a',
-              color: '#ffffff',
-              display: 'grid',
-              placeItems: 'center',
-              fontWeight: 800,
-              fontSize: 16,
-            }}
-          >
-            E
-          </div>
-          <div>
-            <p style={{ margin: 0, fontSize: 18, fontWeight: 800, color: theme.colors.text }}>Ecommerce</p>
-            <p style={{ margin: '2px 0 0', color: theme.colors.textMuted, fontSize: 12 }}>
-              Clean shopping experience
-            </p>
-          </div>
+          LUXE
         </Link>
 
         <div
+          className="nav-links"
           style={{
             display: 'flex',
             justifyContent: 'center',
+            alignItems: 'center',
             gap: 24,
             flexWrap: 'wrap',
+            minHeight: 24,
           }}
         >
           {links.map((link) => (
@@ -111,6 +98,7 @@ function Navbar() {
         </div>
 
         <div
+          className="nav-actions"
           style={{
             display: 'flex',
             justifyContent: 'flex-end',
@@ -119,6 +107,21 @@ function Navbar() {
             flexWrap: 'wrap',
           }}
         >
+          <button
+            onClick={() => setMenuOpen((value) => !value)}
+            style={{
+              display: 'none',
+              width: 42,
+              height: 42,
+              borderRadius: 8,
+              border: `1px solid ${theme.colors.border}`,
+              color: theme.colors.primary,
+            }}
+            className="nav-mobile-toggle"
+            aria-label="Toggle navigation"
+          >
+            {menuOpen ? 'X' : '|||'}
+          </button>
           <Link
             to="/cart"
             style={{
@@ -127,18 +130,28 @@ function Navbar() {
                 alignItems: 'center',
                 gap: 10,
                 textDecoration: 'none',
+                padding: '12px 16px',
+                color: theme.colors.primary,
               }),
             }}
           >
             <CartIcon />
-            Cart
+            Bag
             {cartCount > 0 && <span style={badgeStyle('gold')}>{cartCount}</span>}
           </Link>
           {user ? (
             <>
-              <span style={{ color: theme.colors.textMuted, fontSize: 13, fontWeight: 600 }}>
+              <Link
+                to="/profile"
+                style={{
+                  textDecoration: 'none',
+                  color: theme.colors.textMuted,
+                  fontSize: 13,
+                  fontWeight: 500,
+                }}
+              >
                 {user.name}
-              </span>
+              </Link>
               <button
                 onClick={() => {
                   logout();
@@ -146,13 +159,13 @@ function Navbar() {
                 }}
                 style={buttonStyle('secondary')}
               >
-                Logout
+                Sign Out
               </button>
             </>
           ) : (
             <>
               <Link to="/login" style={{ ...buttonStyle('secondary'), textDecoration: 'none' }}>
-                Login
+                Sign In
               </Link>
               <Link to="/register" style={{ ...buttonStyle(), textDecoration: 'none' }}>
                 Register
@@ -161,6 +174,23 @@ function Navbar() {
           )}
         </div>
       </nav>
+      {menuOpen && (
+        <div
+          className="nav-mobile-panel"
+          style={cardStyle({
+            margin: '0 16px 16px',
+            padding: 16,
+          })}
+        >
+          <div style={{ display: 'grid', gap: 14 }}>
+            {links.map((link) => (
+              <Link key={link.to} to={link.to} style={navLinkStyle(location.pathname === link.to)}>
+                {link.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </motion.header>
   );
 }

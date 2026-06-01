@@ -93,7 +93,7 @@ function ProductDetail() {
 
   return (
     <motion.div {...fadeUp} style={pageStyle}>
-      <div style={{ marginBottom: 18, display: 'flex', gap: 10, flexWrap: 'wrap', color: theme.colors.textMuted, fontSize: 13 }}>
+      <div style={{ marginBottom: 24, display: 'flex', gap: 10, flexWrap: 'wrap', color: theme.colors.textMuted, fontSize: 13 }}>
         <Link to="/" style={{ color: theme.colors.textMuted, textDecoration: 'none' }}>Home</Link>
         <span>/</span>
         <span>{product.category}</span>
@@ -101,16 +101,16 @@ function ProductDetail() {
         <span style={{ color: theme.colors.text }}>{product.name}</span>
       </div>
 
-      <section style={cardStyle({ padding: 24, display: 'grid', gap: 28, gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' })}>
-        <div style={{ background: '#eef2f7', borderRadius: 24, padding: 16 }}>
+      <section style={{ display: 'grid', gap: 32, gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
+        <div style={{ background: theme.colors.surfaceAlt, borderRadius: theme.radius.lg, padding: 0, overflow: 'hidden', border: `1px solid ${theme.colors.border}` }}>
           <img
             src={product.image || 'https://via.placeholder.com/540'}
             alt={product.name}
-            style={{ width: '100%', height: 500, objectFit: 'cover', borderRadius: 18, display: 'block' }}
+            style={{ width: '100%', height: 640, objectFit: 'cover', display: 'block' }}
           />
         </div>
 
-        <div style={{ display: 'grid', gap: 18, alignContent: 'start' }}>
+        <div style={{ display: 'grid', gap: 20, alignContent: 'start' }}>
           <div style={badgeStyle('gold')}>{product.category}</div>
           <h1 style={{ ...sectionTitleStyle, fontSize: 'clamp(2.8rem, 6vw, 4.2rem)' }}>{product.name}</h1>
           <p style={{ ...bodyStyle, fontSize: 16 }}>{product.description || 'A practical product page with a clear summary, pricing, and purchase flow.'}</p>
