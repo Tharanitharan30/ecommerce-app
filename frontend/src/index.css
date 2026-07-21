@@ -1,21 +1,22 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
-  --color-background: #f9f9f9;
-  --color-surface: #ffffff;
-  --color-surface-alt: #f3f3f4;
-  --color-surface-muted: #f3f3f4;
-  --color-border: rgba(196, 198, 208, 0.65);
-  --color-border-strong: #74777f;
-  --color-text: #1a1c1c;
-  --color-text-muted: #43474e;
-  --color-primary: #000e24;
-  --color-primary-soft: rgba(0, 14, 36, 0.08);
+  --color-background: #fbf8fb;
+  --color-surface: #fbf8fb;
+  --color-surface-alt: #f0edef;
+  --color-border: #c5c6cd;
+  --color-border-strong: #75777d;
+  --color-text: #1b1b1d;
+  --color-text-muted: #45474d;
+  --color-primary: #051125;
   --color-danger: #ba1a1a;
   --color-success: #16a34a;
-  --color-info: #2c4771;
-  --color-amber: #d97706;
-  --font-body: 'Inter', sans-serif;
+  --color-amber: #f4a261;
 }
 
 html {
@@ -25,79 +26,46 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  background:
-    radial-gradient(circle at 20% 20%, rgba(214, 227, 255, 0.18), transparent 24%),
-    radial-gradient(circle at 82% 76%, rgba(173, 199, 248, 0.1), transparent 20%),
-    var(--color-background);
+  background-color: var(--color-background);
   color: var(--color-text);
-  font-family: var(--font-body);
+  font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-* {
-  box-sizing: border-box;
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  vertical-align: middle;
 }
 
-a {
-  color: inherit;
-}
-
-button,
-input,
-textarea,
-select {
-  font: inherit;
-}
-
-button {
-  background: none;
-}
-
-input::placeholder,
-textarea::placeholder {
-  color: #a0a3ab;
-}
-
-#root {
-  min-height: 100vh;
-}
-
-.nav-mobile-toggle,
-.nav-mobile-panel {
+.hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 
-@media (max-width: 768px) {
-  body {
-    background:
-      radial-gradient(circle at top, rgba(214, 227, 255, 0.16), transparent 32%),
-      var(--color-background);
-  }
-
-  .nav-links,
-  .nav-actions > a:not(:first-of-type),
-  .nav-actions > span,
-  .nav-actions > button:not(.nav-mobile-toggle) {
-    display: none !important;
-  }
-
-  .nav-mobile-toggle,
-  .nav-mobile-panel {
-    display: block !important;
-  }
-
-  .nav-mobile-panel a {
-    width: fit-content;
-  }
+/* Modern Retail Elevation */
+.card-shadow {
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.05);
+}
+.card-shadow-hover:hover {
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+  transition: all 0.2s ease-in-out;
 }
 
 @keyframes shimmer {
   0% {
     background-position: -220% 0;
   }
-
   100% {
     background-position: 220% 0;
   }
+}
+.shimmer-bg {
+  background: linear-gradient(90deg, #f1f2f4 20%, #e6e8eb 45%, #f1f2f4 70%);
+  background-size: 220% 100%;
+  animation: shimmer 1.4s linear infinite;
 }

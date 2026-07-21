@@ -1,179 +1,186 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import api from '../services/api';
-import useCartStore from '../store/cartStore';
-import useAuthStore from '../store/authStore';
-import {
-  bodyStyle,
-  buttonStyle,
-  cardStyle,
-  emptyStateStyle,
-  fadeUp,
-  formatCurrency,
-  pageStyle,
-  quantityButtonStyle,
-  sectionTitleStyle,
-  skeletonStyle,
-  theme,
-} from '../theme';
+import { useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useStore } from '../store/useStore';
 
-function Cart() {
+export default function Cart() {
   const navigate = useNavigate();
-  const { cart, fetchCart, updateItem, removeItem } = useCartStore();
-  const { user } = useAuthStore();
-  const [ordering, setOrdering] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const { cart, cartLoading, fetchCart, updateCartItem, removeCartItem, token } = useStore();
 
   useEffect(() => {
-    const load = async () => {
-      await fetchCart();
-      setLoading(false);
-    };
-
-    load();
-  }, [fetchCart]);
-
-  const total = cart?.items?.reduce((sum, item) => sum + item.product.price * item.quantity, 0) || 0;
-  const deliveryAddress = user?.address?.trim() || '';
-
-  const handleOrder = async () => {
-    if (!deliveryAddress) {
-      alert('Please add your delivery address in profile');
-      return;
+    if (token) {
+      fetchCart();
     }
+  }, [token, fetchCart]);
 
-    setOrdering(true);
-    try {
-      await api.post('/orders', { address: deliveryAddress });
-      await fetchCart();
-      navigate('/orders');
-    } catch (err) {
-      alert(err.response?.data?.message || 'Order failed');
+  if (!token) {
+    return (
+      <div className="text-center py-xl bg-white border border-outline-variant rounded-xl card-shadow max-w-lg mx-auto mt-lg p-lg space-y-md">
+        <span className="material-symbols-outlined text-4xl text-on-surface-variant">lock</span>
+        <h3 className="font-headline text-lg font-bold text-primary">Please Sign In</h3>
+        <p className="text-on-surface-variant text-sm">
+          You need to be logged in to view your shopping cart.
+        </p>
+        <Link
+          to="/login"
+          className="inline-block bg-primary text-on-primary px-lg py-2 rounded-lg font-bold text-sm hover:opacity-90 transition-all"
+        >
+          Sign In
+        </Link>
+      </div>
+    );
+  }
+
+  if (cartLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[300px] space-y-md">
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-on-surface-variant font-medium text-sm">Loading your cart...</p>
+      </div>
+    );
+  }
+
+  const items = cart?.items || [];
+  const subtotal = items.reduce((sum, item) => sum + (item.product?.price || 0) * item.quantity, 0);
+  const tax = subtotal * 0.18; // 18% GST standard
+  const total = subtotal + tax;
+
+  if (items.length === 0) {
+    return (
+      <div className="text-center py-xl bg-white border border-outline-variant rounded-xl card-shadow max-w-lg mx-auto mt-lg p-lg space-y-md">
+        <span className="material-symbols-outlined text-4xl text-on-surface-variant">shopping_cart</span>
+        <h3 className="font-headline text-lg font-bold text-primary">Your Cart is Empty</h3>
+        <p className="text-on-surface-variant text-sm">
+          Looks like you haven't added anything to your cart yet.
+        </p>
+        <Link
+          to="/search"
+          className="inline-block bg-primary text-on-primary px-lg py-2 rounded-lg font-bold text-sm hover:opacity-90 transition-all"
+        >
+          Start Shopping
+        </Link>
+      </div>
+    );
+  }
+
+  const handleQtyChange = async (productId, quantity, change) => {
+    const newQty = quantity + change;
+    if (newQty >= 1) {
+      await updateCartItem(productId, newQty);
     }
-    setOrdering(false);
   };
 
-  if (loading) {
-    return (
-      <div style={pageStyle}>
-        <div style={cardStyle({ padding: 20 })}>
-          <div style={skeletonStyle(56, { marginBottom: 18 })} />
-          <div style={skeletonStyle(220)} />
-        </div>
-      </div>
-    );
-  }
-
-  if (!cart || !cart.items?.length) {
-    return (
-      <div style={pageStyle}>
-        <div style={emptyStateStyle}>
-          <div style={{ fontSize: 40, color: theme.colors.textMuted }}>Cart</div>
-          <h1 style={{ margin: 0, fontSize: 36, color: theme.colors.text }}>Your cart is empty</h1>
-          <p style={{ ...bodyStyle, maxWidth: 420 }}>
-            Add products to your cart and come back here to review quantities, totals, and delivery details.
-          </p>
-          <button onClick={() => navigate('/')} style={buttonStyle()}>
-            Continue shopping
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const handleRemove = async (productId) => {
+    if (confirm('Are you sure you want to remove this item?')) {
+      await removeCartItem(productId);
+    }
+  };
 
   return (
-    <motion.div {...fadeUp} style={pageStyle}>
-      <div style={{ display: 'grid', gap: 32, alignItems: 'start', gridTemplateColumns: 'minmax(0, 1fr) minmax(320px, 360px)' }}>
-        <section style={{ overflow: 'hidden' }}>
-          <div style={{ marginBottom: 18 }}>
-            <h1 style={{ ...sectionTitleStyle, fontSize: 'clamp(2.4rem, 4vw, 3rem)' }}>Shopping Cart</h1>
-            <p style={{ ...bodyStyle, marginTop: 8 }}>Review your selected items before placing the order.</p>
-          </div>
+    <div className="space-y-md animate-fade-in">
+      <h1 className="font-headline text-3xl font-black text-primary mb-xl">Your Shopping Cart</h1>
 
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 680 }}>
-              <thead>
-                <tr style={{ color: theme.colors.textMuted, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  <th style={{ textAlign: 'left', padding: '0 0 16px' }}>Product</th>
-                  <th style={{ textAlign: 'left', padding: '0 0 16px' }}>Quantity</th>
-                  <th style={{ textAlign: 'left', padding: '0 0 16px' }}>Price</th>
-                  <th style={{ textAlign: 'left', padding: '0 0 16px' }}>Subtotal</th>
-                  <th style={{ textAlign: 'right', padding: '0 0 16px' }}>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {cart.items.map((item) => (
-                  <tr key={item.product._id} style={{ borderTop: `1px solid ${theme.colors.border}` }}>
-                    <td style={{ padding: '18px 0' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                        <img src={item.product.image || 'https://via.placeholder.com/80'} alt={item.product.name} style={{ width: 96, height: 128, objectFit: 'cover', borderRadius: 4, background: theme.colors.surfaceAlt }} />
-                        <div>
-                          <p style={{ margin: 0, color: theme.colors.text, fontWeight: 700 }}>{item.product.name}</p>
-                          <p style={{ margin: '6px 0 0', color: theme.colors.textMuted, fontSize: 13 }}>{item.product.category}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td style={{ padding: '18px 0' }}>
-                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                        <button onClick={() => updateItem(item.product._id, item.quantity - 1)} disabled={item.quantity <= 1} style={{ ...quantityButtonStyle, opacity: item.quantity <= 1 ? 0.4 : 1 }}>-</button>
-                        <span style={{ minWidth: 26, textAlign: 'center', fontWeight: 700 }}>{item.quantity}</span>
-                        <button onClick={() => updateItem(item.product._id, item.quantity + 1)} style={quantityButtonStyle}>+</button>
-                      </div>
-                    </td>
-                    <td style={{ padding: '18px 0', color: theme.colors.textMuted }}>{formatCurrency(item.product.price)}</td>
-                    <td style={{ padding: '18px 0', color: theme.colors.text, fontWeight: 800 }}>{formatCurrency(item.product.price * item.quantity)}</td>
-                    <td style={{ padding: '18px 0', textAlign: 'right' }}>
-                      <button onClick={() => removeItem(item.product._id)} style={buttonStyle('ghost')}>Remove</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-lg items-start">
+        {/* Left Column: Cart Items */}
+        <div className="lg:col-span-8 space-y-md">
+          {items.map((item) => {
+            const prod = item.product;
+            if (!prod) return null;
+            return (
+              <div
+                key={prod._id}
+                className="bg-white border border-outline-variant p-md rounded-lg flex flex-col sm:flex-row gap-md shadow-sm"
+              >
+                <div className="w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 bg-surface-container rounded-lg overflow-hidden border border-outline-variant p-2 flex items-center justify-center">
+                  <img
+                    className="w-full h-full object-contain"
+                    src={prod.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=150'}
+                    alt={prod.name}
+                  />
+                </div>
+                <div className="flex-grow flex flex-col justify-between py-xs">
+                  <div className="flex justify-between items-start gap-md">
+                    <div>
+                      <h3 className="font-bold text-primary text-sm sm:text-base line-clamp-1">{prod.name}</h3>
+                      <p className="text-xs text-on-surface-variant mt-1 line-clamp-2">{prod.description}</p>
+                    </div>
+                    <p className="font-bold text-primary text-sm sm:text-base whitespace-nowrap">
+                      Rs {prod.price.toLocaleString('en-IN')}
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between mt-4 gap-md flex-wrap">
+                    <div className="flex items-center gap-xs">
+                      <button
+                        onClick={() => handleQtyChange(prod._id, item.quantity, -1)}
+                        className="w-8 h-8 flex items-center justify-center border border-outline-variant rounded hover:bg-surface-container transition-colors text-primary font-bold"
+                      >
+                        <span className="material-symbols-outlined text-sm">remove</span>
+                      </button>
+                      <span className="w-8 text-center font-bold text-sm text-primary">
+                        {item.quantity}
+                      </span>
+                      <button
+                        onClick={() => handleQtyChange(prod._id, item.quantity, 1)}
+                        className="w-8 h-8 flex items-center justify-center border border-outline-variant rounded hover:bg-surface-container transition-colors text-primary font-bold"
+                      >
+                        <span className="material-symbols-outlined text-sm">add</span>
+                      </button>
+                    </div>
+                    <div className="flex gap-lg items-center text-xs font-semibold">
+                      <button
+                        onClick={() => handleRemove(prod._id)}
+                        className="text-error hover:underline flex items-center gap-xs"
+                      >
+                        <span className="material-symbols-outlined text-sm">delete</span>
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
 
-        <aside style={{ position: 'sticky', top: 104, ...cardStyle({ padding: 22 }) }}>
-          <h2 style={{ ...sectionTitleStyle, fontSize: '2rem' }}>Order summary</h2>
-          <div style={{ display: 'grid', gap: 10, marginTop: 18 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', color: theme.colors.textMuted }}>
-              <span>Items</span>
-              <span>{cart.items.length}</span>
+        {/* Right Column: Order Summary */}
+        <aside className="lg:col-span-4 sticky top-24">
+          <div className="bg-white border border-outline-variant rounded-lg p-lg shadow-sm space-y-lg">
+            <h2 className="font-headline text-lg font-bold text-primary pb-sm border-b border-outline-variant/30">
+              Order Summary
+            </h2>
+            <div className="space-y-sm text-sm">
+              <div className="flex justify-between text-on-surface-variant">
+                <span>Subtotal</span>
+                <span className="font-semibold text-primary">Rs {subtotal.toLocaleString('en-IN')}</span>
+              </div>
+              <div className="flex justify-between text-on-surface-variant">
+                <span>GST (18%)</span>
+                <span className="font-semibold text-primary">Rs {tax.toLocaleString('en-IN')}</span>
+              </div>
+              <div className="flex justify-between text-on-surface-variant">
+                <span>Shipping</span>
+                <span className="text-secondary font-bold">FREE</span>
+              </div>
+              <div className="flex justify-between pt-md border-t border-outline-variant/30 text-base font-bold">
+                <span className="text-primary">Total</span>
+                <span className="text-primary text-lg">Rs {total.toLocaleString('en-IN')}</span>
+              </div>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', color: theme.colors.textMuted }}>
-              <span>Delivery</span>
-              <span>Calculated at checkout</span>
+            <div className="pt-md space-y-md">
+              <button
+                onClick={() => navigate('/checkout')}
+                className="w-full py-3 bg-secondary text-on-secondary font-bold rounded-lg shadow-md hover:opacity-95 active:scale-[0.98] transition-all flex items-center justify-center gap-sm text-sm"
+              >
+                Proceed to Checkout
+                <span className="material-symbols-outlined text-sm">arrow_forward</span>
+              </button>
+              <div className="bg-surface-container p-sm rounded border border-outline-variant/50 flex items-center justify-center gap-sm text-on-surface-variant text-[10px] font-bold uppercase tracking-wider">
+                <span className="material-symbols-outlined text-primary text-sm">verified_user</span>
+                Secure Checkout
+              </div>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', color: theme.colors.text, fontSize: 24, fontWeight: 800, marginTop: 6 }}>
-              <span>Total</span>
-              <span>{formatCurrency(total)}</span>
-            </div>
-          </div>
-
-          <div style={{ ...cardStyle({ marginTop: 18, padding: 16, background: theme.colors.surfaceAlt }) }}>
-            <p style={{ margin: 0, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.12em', color: theme.colors.textMuted, fontWeight: 600 }}>
-              Delivery address
-            </p>
-            <p style={{ ...bodyStyle, marginTop: 10, color: deliveryAddress ? theme.colors.text : theme.colors.textMuted }}>
-              {deliveryAddress || 'No address saved in your profile yet.'}
-            </p>
-          </div>
-
-          <div style={{ display: 'grid', gap: 12, marginTop: 18 }}>
-            <button onClick={handleOrder} disabled={ordering} style={buttonStyle('primary', ordering ? { opacity: 0.65 } : {})}>
-              {ordering ? 'Placing order...' : 'Place order'}
-            </button>
-            <button onClick={() => navigate('/profile')} style={buttonStyle('ghost')}>
-              Edit address
-            </button>
-            <button onClick={() => navigate('/checkout')} style={buttonStyle('secondary')}>
-              Proceed to checkout
-            </button>
           </div>
         </aside>
       </div>
-    </motion.div>
+    </div>
   );
 }
-
-export default Cart;

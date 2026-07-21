@@ -1,97 +1,78 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import api from '../services/api';
-import useAuthStore from '../store/authStore';
-import { bodyStyle, buttonStyle, fadeUp, inputStyle, pageStyle, sectionTitleStyle, theme } from '../theme';
+import { useNavigate, Link } from 'react-router-dom';
+import { useStore } from '../store/useStore';
 
-function Login() {
-  const [form, setForm] = useState({ email: '', password: '' });
-  const [error, setError] = useState('');
-  const { login } = useAuthStore();
+export default function Login() {
   const navigate = useNavigate();
+  const { login, authError, authLoading } = useStore();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  const handleSubmit = async () => {
-    if (!form.email || !form.password) {
-      setError('All fields are required');
-      return;
-    }
-
-    try {
-      const { data } = await api.post('/auth/login', form);
-      login(data.user, data.token);
-      navigate('/');
-    } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const success = await login(email, password);
+    if (success) {
+      navigate(-1); // Go back or go home
     }
   };
 
   return (
-    <div style={{ ...pageStyle, minHeight: 'calc(100vh - 88px)', display: 'grid', placeItems: 'center' }}>
-      <motion.div
-        {...fadeUp}
-        style={{
-          width: '100%',
-          maxWidth: 440,
-          padding: '48px clamp(24px, 4vw, 40px)',
-          background: theme.colors.surface,
-          border: `1px solid ${theme.colors.border}`,
-          borderRadius: theme.radius.lg,
-        }}
-      >
-        <p style={{ margin: 0, color: theme.colors.primary, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.14em', fontWeight: 600 }}>
-          Welcome back
-        </p>
-        <h1 style={{ ...sectionTitleStyle, fontSize: '2rem', marginTop: 12 }}>Sign In</h1>
-        <p style={{ ...bodyStyle, marginTop: 10 }}>Access your account to continue shopping.</p>
+    <div className="max-w-md w-full mx-auto mt-xl bg-white border border-outline-variant p-lg rounded-xl shadow-sm space-y-lg animate-fade-in">
+      <div>
+        <h1 className="font-headline text-2xl font-black text-primary">Sign In to ProMarket</h1>
+        <p className="text-xs text-on-surface-variant mt-1">Enter your email and password to log in.</p>
+      </div>
 
-        <div style={{ display: 'grid', gap: 14, marginTop: 28 }}>
-          <label style={labelStyle}>
-            Email Address
-            <input
-              type="email"
-              placeholder="name@example.com"
-              value={form.email}
-              onChange={(event) => setForm({ ...form, email: event.target.value })}
-              style={inputStyle(Boolean(error))}
-            />
-          </label>
-          <label style={labelStyle}>
-            Password
-            <input
-              type="password"
-              placeholder="Enter your password"
-              value={form.password}
-              onChange={(event) => setForm({ ...form, password: event.target.value })}
-              style={inputStyle(Boolean(error))}
-            />
-          </label>
-          {error && <p style={{ margin: 0, color: theme.colors.danger, fontSize: 14 }}>{error}</p>}
-          <button onClick={handleSubmit} style={buttonStyle()}>
-            Sign In
-          </button>
+      {authError && (
+        <div className="bg-error-container text-on-error-container text-sm p-sm rounded-lg font-medium border border-error/20">
+          {authError}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-md">
+        <div>
+          <label className="block text-xs font-bold text-on-surface-variant mb-1">Email Address</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            placeholder="you@example.com"
+            className="w-full p-sm bg-surface-container border border-outline-variant rounded-lg text-sm outline-none focus:border-primary"
+          />
         </div>
 
-        <p style={{ ...bodyStyle, marginTop: 22, textAlign: 'center' }}>
-          Don&apos;t have an account?{' '}
-          <Link to="/register" style={{ color: theme.colors.primary, textDecoration: 'none', fontWeight: 700 }}>
-            Register
-          </Link>
-        </p>
-      </motion.div>
+        <div>
+          <label className="block text-xs font-bold text-on-surface-variant mb-1">Password</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            placeholder="••••••••"
+            className="w-full p-sm bg-surface-container border border-outline-variant rounded-lg text-sm outline-none focus:border-primary"
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={authLoading}
+          className="w-full bg-primary text-on-primary py-3 rounded-lg font-bold hover:bg-primary-container disabled:opacity-50 transition-all text-sm flex items-center justify-center gap-2 shadow-sm"
+        >
+          {authLoading ? (
+            <span className="w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin"></span>
+          ) : (
+            'Sign In'
+          )}
+        </button>
+      </form>
+
+      <div className="text-center text-xs text-on-surface-variant pt-md border-t border-outline-variant/30">
+        New to ProMarket?{' '}
+        <Link to="/register" className="text-secondary font-bold hover:underline">
+          Create an account
+        </Link>
+      </div>
     </div>
   );
 }
-
-export default Login;
-
-const labelStyle = {
-  display: 'grid',
-  gap: 6,
-  margin: 0,
-  color: theme.colors.textMuted,
-  fontSize: 12,
-  textTransform: 'uppercase',
-  letterSpacing: '0.12em',
-  fontWeight: 600,
-};
